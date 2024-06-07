@@ -58,3 +58,4 @@ venv.bak/
 
 # macOS
 .DS_Store
+/volume/
