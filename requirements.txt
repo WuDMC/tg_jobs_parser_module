@@ -1,0 +1,13 @@
+google-cloud-storage
+google-cloud-bigquery
+python-telegram-bot
+fastavro
+pylint==3.1.0
+pytest==8.1.1
+pytest-cov==5.0.0
+ipython==8.23.0
+black==24.4.1
+google==3.0.0
+ndjson
+Pyrogram~=2.0.106
+python-dotenv
