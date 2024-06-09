@@ -11,3 +11,6 @@ google==3.0.0
 ndjson
 Pyrogram~=2.0.106
 python-dotenv
+prefect==2.19.4
+typing
+httpx

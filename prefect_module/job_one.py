@@ -1,5 +1,6 @@
 #### JUST SCRATCHES for AIRFLOW JOBS
 
+from prefect import flow
 
 from telegram_helper.channel_parser import ChannelParser
 from google_cloud_helper.storage_manager import StorageManager
@@ -12,7 +13,7 @@ CL_CHANNELS_LOCAL_PATH = os.path.join(vars.VOLUME_DIR, 'gsc_channels_metadata.js
 TG_CHANNELS_LOCAL_PATH = os.path.join(vars.VOLUME_DIR, 'tg_channels_metadata.json')
 MG_CHANNELS_LOCAL_PATH = os.path.join(vars.VOLUME_DIR, 'merged_channels_metadata.json')
 
-
+@flow(log_prints=True)
 def job_one(force=False, date=vars.START_DATE):
     """
         job ONE - update channels metadata
@@ -73,64 +74,9 @@ def update_channels(date, force=False):
     finally:
         json_helper.save_to_json(cloud_channels, CL_CHANNELS_LOCAL_PATH)
 
-
-def job_two(channel, save_to=vars.VOLUME_DIR ):
-    """
-    job two - read messages from channel
-    # save in to json & avro files locally
-    :param save_to:
-    :param channel:
-    :return: just save parsed msges to volume path
-    """
-    parser = MessageParser()
-    # flow right: target_id or right border =>>>  last_posted_message_id.
-    # flow left:  target_id <<<= left border or last_posted_message_id
-    print(channel)
-    msgs, left, right = parser.run_chat_parser(channel)
-    json_helper.save_to_line_delimeted_json(
-        msgs,
-        os.path.join(save_to, f"msgs{channel['id']}_left_{left}_right_{right}.json")
-    )
-
-
-def job_three():
-    """
-    get channels_metadata from GCS
-    each channel run job  two 'get messages' (saved to_json)
-    :return:
-    """
-    storage_manager = StorageManager()
-    storage_manager.download_channels_metadata(CL_CHANNELS_LOCAL_PATH)
-    channels = json_helper.read_json(CL_CHANNELS_LOCAL_PATH)
-    for ch_id in channels:
-        if channels[ch_id]['type'] != 'ChatType.CHANNEL':
-            continue
-        job_two(channels[ch_id])
-
-
-def job_four():
-    """
-    after all messages downloaded  load AVRO to GCS
-    update cloud metadata with left and right ids if loaded OK
-    :return:
-    """
-
-
-def job_five():
-    """
-    just check how much messages we have
-    :return:
-    """
-    channels = json_helper.read_json(CL_CHANNELS_LOCAL_PATH)
-    total_difference = sum(
-        group["last_posted_message_id"] - group["target_id"]
-        for group in channels.values()
-        if group["status"] == "ok" and group[
-            'type'] == 'ChatType.CHANNEL' and "last_posted_message_id" in group and "target_id" in group
-    )
-    print(total_difference)
-
-
-job_one()
-# job_five()
-job_three()
+if __name__ == "__main__":
+    job_one.serve(name="job-one-new",
+                      tags=["test"],
+                  interval=100
+                      )
+# job_one()
