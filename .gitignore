@@ -61,3 +61,5 @@ venv.bak/
 
 # tg-bot
 my_account.session
+!vol/
+vol/*
