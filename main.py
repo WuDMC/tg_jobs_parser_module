@@ -60,6 +60,14 @@ def update_channels(date, force=False):
                 print(f'for {ch_id} target date already setted')
                 continue
             print(f'getting target date for {ch_id} ')
+            if tg_channels[ch_id]['type'] == 'ChatType.BOT':
+                cloud_channels[ch_id]['status'] = 'bad'
+                print(f'{ch_id} is bot - skip')
+                continue
+            if tg_channels[ch_id]['type'] == 'ChatType.PRIVATE':
+                cloud_channels[ch_id]['status'] = 'bad'
+                print(f'{ch_id} is PRIVATE - skip')
+                continue
             msgs_data = msg_parser.run_msg_parser(ch_id, date)
             if msgs_data:
                 cloud_channels[ch_id]['left_saved_id'] = None

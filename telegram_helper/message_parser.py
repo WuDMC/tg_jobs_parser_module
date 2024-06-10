@@ -1,7 +1,7 @@
 import asyncio
 from datetime import datetime, timezone
 from configs.telegram_config import TelegramConfig
-from pyrogram import Client
+from telegram_helper.telegram_client import TelegramClient
 from configs import vars
 
 
@@ -39,16 +39,23 @@ def chat_parser_args(channel):
 
 class MessageParser:
     def __init__(self):
+        self.left = None
+        self.right = None
+        self.msgs = None
+        self.message_data = None
         self.config = TelegramConfig()
-        self.client = Client("my_account", api_id=self.config.get_api_id(), api_hash=self.config.get_api_hash())
+        self.client = TelegramClient(session_string=self.config.get_session())
+        self.client.test_client()
+        self.app = self.client.get_client()
+        self.channels = {}
 
     async def get_message_id(self, chat_id, target_date):
         self.message_data = []
         print(f'finding id of msg for {target_date} in chat {chat_id}')
         try:
             date = datetime.strptime(target_date, "%Y-%m-%d")
-            async with self.client:
-                async for message in self.client.get_chat_history(chat_id, limit=1, offset_date=date):
+            async with self.app as app:
+                async for message in self.app.get_chat_history(int(chat_id), limit=1, offset_date=date):
                     await asyncio.sleep(1)
                     print(message.id, str(message.date))
                     self.message_data = [message.id or None, str(message.date) or None]
@@ -72,8 +79,8 @@ class MessageParser:
             kwargs['limit'] = max(kwargs['limit'], 1)
             print(f"Reading messages  from chat {channel_metadata['id']} with {kwargs}")
             messages = []
-            async with self.client:
-                async for message in self.client.get_chat_history(channel_metadata['id'], **kwargs):
+            async with self.app:
+                async for message in self.app.get_chat_history(int(channel_metadata['id']), **kwargs):
                     msg_data = {
                         'id': message.id,
                         'text': process_msg(message),
@@ -100,14 +107,13 @@ class MessageParser:
             print(f'{self} done')
 
     def run_msg_parser(self, chat_id, date):
-        self.client.run(self.get_message_id(chat_id, date))
+        self.app.run(self.get_message_id(chat_id, date))
         return self.message_data
 
     def run_chat_parser(self, channel_metadata):
-        self.client.run(self.parse_channel_messages(channel_metadata))
+        self.app.run(self.parse_channel_messages(channel_metadata))
         return self.msgs, self.left, self.right
 
 # parser = MessageParser()
-# result1 = parser.run_msg_parser('-1001102660677', '2024-02-02')
-# result2 = parser.run_msg_parser('-1001102660677', '2024-02-10')
-# result3 = parser.run_msg_parser('-1001102660677', '2024-01-10')
+# result1 = parser.run_msg_parser('-1001102660677', '2024-02-02') # ok
+# result2 = parser.run_msg_parser('93372553', '2024-02-10') # error

@@ -2,7 +2,6 @@ import google
 from google.cloud import storage
 from configs.google_cloud_config import GoogleCloudConfig
 
-
 class StorageManager:
     def __init__(self):
         self.config = GoogleCloudConfig()

@@ -3,17 +3,17 @@ from configs.telegram_config import TelegramConfig
 from telegram_helper.telegram_client import TelegramClient
 
 
-
-
 class ChannelParser:
     def __init__(self):
         self.config = TelegramConfig()
-        self.client = TelegramClient(self.config.get_api_id(), self.config.get_api_hash()).get_client()
+        self.client = TelegramClient(session_string=self.config.get_session())
+        self.client.test_client()
+        self.app = self.client.get_client()
         self.channels = {}
 
     async def get_all_channels(self):
-        async with self.client:
-            async for dialog in self.client.get_dialogs():
+        async with self.app:
+            async for dialog in self.app.get_dialogs():
                 chat = dialog.chat
                 channel_info = {
                     'id': chat.id,
@@ -30,9 +30,8 @@ class ChannelParser:
                 print(f"Collected data: {channel_info}")
 
     def get_channels(self):
-        self.client.run(self.get_all_channels())
+        self.app.run(self.get_all_channels())
         return self.channels
-
 
 # example
 # parser = ChannelParser()

@@ -18,4 +18,4 @@ RUN pip install -r /app/requirements.txt
 RUN python jobs_parser/setup.py install
 
 # Default command to run in the container
-CMD ["python"]
+CMD ["bash"]

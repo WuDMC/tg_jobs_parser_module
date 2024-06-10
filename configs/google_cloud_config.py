@@ -1,9 +1,11 @@
 from configs import vars
+from dotenv import load_dotenv
 
 
 class GoogleCloudConfig:
 
     def __init__(self):
+        load_dotenv()
         self.bucket_name = vars.GCS_BUCKET_NAME
         self.source_channels_blob = vars.CHANNEL_METADATA_PATH
 
