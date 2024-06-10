@@ -58,7 +58,6 @@ venv.bak/
 
 # macOS
 .DS_Store
-/volume/
 
 # tg-bot
 my_account.session
