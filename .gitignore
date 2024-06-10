@@ -63,3 +63,4 @@ venv.bak/
 my_account.session
 !volume/
 volume/**
+*.session
