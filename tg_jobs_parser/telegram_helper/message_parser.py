@@ -1,8 +1,8 @@
 import asyncio
-from datetime import datetime, timezone
-from configs.telegram_config import TelegramConfig
-from telegram_helper.telegram_client import TelegramClient
-from configs import vars
+from datetime import datetime
+from tg_jobs_parser.configs import TelegramConfig
+from tg_jobs_parser.telegram_helper.telegram_client import TelegramClient
+from tg_jobs_parser.configs import vars
 
 
 def process_msg(message):

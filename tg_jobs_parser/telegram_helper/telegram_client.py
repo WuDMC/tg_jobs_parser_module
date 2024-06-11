@@ -1,12 +1,11 @@
-import os
-import asyncio
 from pyrogram import Client
 from pyrogram.errors import PeerIdInvalid
-from configs import vars
+from tg_jobs_parser.configs import vars
 
 
 class TelegramClient:
     def __init__(self, api_id=None, api_hash=None, session_string=None):
+        self.session_string = None
         if session_string:
             print('authorize with session string')
             self.app = Client(vars.ACCOUNT_NAME, session_string=session_string, in_memory=True)
@@ -52,8 +51,6 @@ class TelegramClient:
     def test_message(self):
         # Replace `chat_id` or `username` with a valid one
         self.app.run(self.get_message_id(chat_id='-1001140315542'))  # or username='valid_username'
-
-from configs.telegram_config import TelegramConfig
 
 # config = TelegramConfig()
 # client = TelegramClient(session_string=config.get_session())

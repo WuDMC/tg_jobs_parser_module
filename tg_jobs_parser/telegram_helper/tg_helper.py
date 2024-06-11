@@ -1,8 +1,8 @@
 # some tests
 
 from pyrogram import Client
-from configs.telegram_config import TelegramConfig
-from configs import vars
+from tg_jobs_parser.configs import TelegramConfig
+from tg_jobs_parser.configs import vars, volume_folder_path
 import os
 
 SESSION_STRING_FILE = 'session_string.txt'
@@ -16,10 +16,10 @@ class TelegramHelper:
         if session_string:
             print('using session string')
             self.session_string = session_string
-            self.client = Client(vars.VOLUME_DIR, in_memory=True, session_string=session_string)
+            self.client = Client(vars.ACCOUNT_NAME, in_memory=True, session_string=session_string)
         else:
             print('using api key & hash')
-            self.client = Client(vars.VOLUME_DIR, api_id=self.config.get_api_id(), api_hash=self.config.get_api_hash(),
+            self.client = Client(vars.ACCOUNT_NAME, api_id=self.config.get_api_id(), api_hash=self.config.get_api_hash(),
                                  in_memory=True)
 
     async def get_session_string(self):
@@ -40,7 +40,7 @@ class TelegramHelper:
     def get_new_session(self):
         self.client.run(self.get_session_string())
         print(f'Obtained session string: {self.session_string}')
-        session_path = os.path.join(vars.VOLUME_DIR, SESSION_STRING_FILE)
+        session_path = os.path.join(volume_folder_path, SESSION_STRING_FILE)
         with open(session_path, "w") as file:
             file.write(self.session_string)
             print(f"Session string saved to {session_path}")

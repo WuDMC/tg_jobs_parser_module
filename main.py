@@ -1,16 +1,16 @@
 #### JUST SCRATCHES for AIRFLOW JOBS
 
 
-from telegram_helper.channel_parser import ChannelParser
-from google_cloud_helper.storage_manager import StorageManager
-from telegram_helper.message_parser import MessageParser
-from utils import json_helper
-from configs import vars
+from tg_jobs_parser.telegram_helper.channel_parser import ChannelParser
+from tg_jobs_parser.google_cloud_helper.storage_manager import StorageManager
+from tg_jobs_parser.telegram_helper.message_parser import MessageParser
+from tg_jobs_parser.utils import json_helper
+from tg_jobs_parser.configs import vars, volume_folder_path
 import os
 
-CL_CHANNELS_LOCAL_PATH = os.path.join(vars.VOLUME_DIR, 'gsc_channels_metadata.json')
-TG_CHANNELS_LOCAL_PATH = os.path.join(vars.VOLUME_DIR, 'tg_channels_metadata.json')
-MG_CHANNELS_LOCAL_PATH = os.path.join(vars.VOLUME_DIR, 'merged_channels_metadata.json')
+CL_CHANNELS_LOCAL_PATH = os.path.join(volume_folder_path, 'gsc_channels_metadata.json')
+TG_CHANNELS_LOCAL_PATH = os.path.join(volume_folder_path, 'tg_channels_metadata.json')
+MG_CHANNELS_LOCAL_PATH = os.path.join(volume_folder_path, 'merged_channels_metadata.json')
 
 
 def job_one(force=False, date=vars.START_DATE):
@@ -82,7 +82,7 @@ def update_channels(date, force=False):
         json_helper.save_to_json(cloud_channels, CL_CHANNELS_LOCAL_PATH)
 
 
-def job_two(channel, save_to=vars.VOLUME_DIR ):
+def job_two(channel, save_to=volume_folder_path):
     """
     job two - read messages from channel
     # save in to json & avro files locally
@@ -93,7 +93,7 @@ def job_two(channel, save_to=vars.VOLUME_DIR ):
     parser = MessageParser()
     # flow right: target_id or right border =>>>  last_posted_message_id.
     # flow left:  target_id <<<= left border or last_posted_message_id
-    print(channel)
+    print(f'{channel} will be saved to {save_to}')
     msgs, left, right = parser.run_chat_parser(channel)
     json_helper.save_to_line_delimeted_json(
         msgs,

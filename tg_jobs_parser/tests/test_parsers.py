@@ -1,6 +1,6 @@
 import pytest
-from telegram_helper.channel_parser import ChannelParser
-from telegram_helper.message_parser import MessageParser
+from tg_jobs_parser.telegram_helper.channel_parser import ChannelParser
+from tg_jobs_parser.telegram_helper.message_parser import MessageParser
 
 @pytest.fixture
 def channel_parser():

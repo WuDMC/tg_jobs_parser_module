@@ -1,6 +1,7 @@
 import google
 from google.cloud import storage
-from configs.google_cloud_config import GoogleCloudConfig
+from tg_jobs_parser.configs import GoogleCloudConfig
+
 
 class StorageManager:
     def __init__(self):
@@ -25,5 +26,3 @@ class StorageManager:
         except google.api_core.exceptions.NotFound as e:
             print(f"Ошибка: {e}")
             return None
-
-

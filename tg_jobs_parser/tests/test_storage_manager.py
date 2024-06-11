@@ -1,5 +1,5 @@
 import pytest
-from google_cloud_helper.storage_manager import StorageManager
+from tg_jobs_parser.google_cloud_helper.storage_manager import StorageManager
 
 @pytest.fixture
 def storage_manager():

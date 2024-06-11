@@ -1,5 +1,5 @@
 import pytest
-from google_cloud_helper.bigquery_manager import BigQueryManager
+from tg_jobs_parser.google_cloud_helper.bigquery_manager import BigQueryManager
 
 @pytest.fixture
 def bigquery_manager():

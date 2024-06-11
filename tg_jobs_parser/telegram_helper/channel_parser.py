@@ -1,6 +1,6 @@
 from datetime import datetime
-from configs.telegram_config import TelegramConfig
-from telegram_helper.telegram_client import TelegramClient
+from tg_jobs_parser.configs import TelegramConfig
+from tg_jobs_parser.telegram_helper.telegram_client import TelegramClient
 
 
 class ChannelParser:
