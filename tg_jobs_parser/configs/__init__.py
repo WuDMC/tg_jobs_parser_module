@@ -3,7 +3,9 @@ from dotenv import load_dotenv
 import os
 
 # edit if needed => to store messages and
-volume_folder_path = os.path.abspath(os.path.join(os.getcwd(), '..', '..', vars.VOLUME_DIR))
+# volume_folder_path = os.path.abspath(os.path.join(os.getcwd(), '..', '..', vars.VOLUME_DIR))
+volume_folder_path = os.path.join('/home/wudmc/PycharmProjects/jobs_parser/', vars.VOLUME_DIR)
+# os.makedirs(volume_folder_path, exist_ok=True)
 
 
 class GoogleCloudConfig:
@@ -13,6 +15,8 @@ class GoogleCloudConfig:
         load_dotenv()
         self.bucket_name = vars.GCS_BUCKET_NAME
         self.source_channels_blob = vars.CHANNEL_METADATA_PATH
+        self.source_msg_blob = vars.MSGS_DATA_PATH
+
 
     def get_bucket_name(self):
         return self.bucket_name

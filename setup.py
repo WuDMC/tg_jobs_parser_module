@@ -10,4 +10,4 @@ setup(
     install_requires=requirements,
 )
 
-# pip install -e /home/wudmc/PycharmProjects/jobs_parser
+# pip install -e /home/wudmc/PycharmProjects/jobs_parser/

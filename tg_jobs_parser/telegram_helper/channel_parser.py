@@ -7,7 +7,7 @@ class ChannelParser:
     def __init__(self):
         self.config = TelegramConfig()
         self.client = TelegramClient(session_string=self.config.get_session())
-        self.client.test_client()
+        # self.client.test_client()
         self.app = self.client.get_client()
         self.channels = {}
 

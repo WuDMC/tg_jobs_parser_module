@@ -4,11 +4,24 @@ from tg_jobs_parser.configs import TelegramConfig
 from tg_jobs_parser.telegram_helper.telegram_client import TelegramClient
 from tg_jobs_parser.configs import vars
 
-
+def each_slice(arr, n):
+    """Генерирует слайсы по n элементов."""
+    for i in range(0, len(arr), n):
+        yield arr[i:i + n]
 def process_msg(message):
     message_text = message.text if message.text else ""
     message_caption = message.caption if message.caption else ""
     return f"{message_text} {message_caption}".strip()
+
+def generate_ids(from_msg_id, limit, flow):
+    if flow == 'right':
+        return [from_msg_id + i for i in range(limit)]
+    elif flow == 'left':
+        return [from_msg_id - i for i in range(limit)]
+    else:
+        raise ValueError("flow must be 'right' or 'left'")
+
+# Примеры использования:
 
 
 def chat_parser_args(channel):
@@ -25,15 +38,16 @@ def chat_parser_args(channel):
         return
     elif channel['right_saved_id'] < channel['last_posted_message_id']:
         flow = 'right'
-        from_msg_id = channel['right_saved_id']
+        from_msg_id = channel['right_saved_id'] + 1
         limit = int(channel['last_posted_message_id']) - int(from_msg_id)
     elif channel['left_saved_id'] > channel['target_id']:
         flow = 'left'
-        from_msg_id = channel['left_saved_id']
+        from_msg_id = channel['left_saved_id'] - 1
         limit = int(from_msg_id) - int(channel['target_id'])
     else:
         print(f"UNCOVERED CASE => nothing to do at {channel['id']}")
         raise
+    limit = max(limit, 1)
     return from_msg_id, limit, flow
 
 
@@ -45,7 +59,7 @@ class MessageParser:
         self.message_data = None
         self.config = TelegramConfig()
         self.client = TelegramClient(session_string=self.config.get_session())
-        self.client.test_client()
+        # self.client.test_client()
         self.app = self.client.get_client()
         self.channels = {}
 
@@ -67,42 +81,52 @@ class MessageParser:
         self.left = None
         self.right = None
         from_msg_id, limit, flow = chat_parser_args(channel_metadata)
-        print(channel_metadata['id'], from_msg_id, limit, flow)
-        # flow new = from target_id or right border  to last_posted_message_id. from  < to
-        # flow old = from left border or last to target. from > to
+        limit = min(limit, vars.MAX_LIMIT)
         try:
-            kwargs = {'limit': min(limit, vars.MAX_LIMIT), 'offset_id': int(from_msg_id)}
-            if flow == 'right':
-                kwargs['offset_id'] += 1
-                kwargs['offset'] = -kwargs['limit']
-
-            kwargs['limit'] = max(kwargs['limit'], 1)
-            print(f"Reading messages  from chat {channel_metadata['id']} with {kwargs}")
-            messages = []
+            msgs_ids = generate_ids(from_msg_id, limit, flow)
+            print(
+                f"Reading messages from chat {channel_metadata['id']} from: {from_msg_id} limit: {limit}, flow: {flow}")
+            messages = {}
             async with self.app:
-                async for message in self.app.get_chat_history(int(channel_metadata['id']), **kwargs):
-                    msg_data = {
-                        'id': message.id,
-                        'text': process_msg(message),
-                        'datetime': str(message.date),
-                        'date': str(message.date.date()),
-                        'link': message.link,
-                        'user': message.from_user.id if message.from_user else None,
-                        'user_name': f'@{message.from_user.username}' if message.from_user else None,
-                        'chat_id': channel_metadata['id'],
-                    }
-                    print(msg_data)
-                    messages.append(msg_data)
-                    await asyncio.sleep(0.2)  # Пауза между запросами, чтобы не нагружать сервер
-            unique_messages = {item['id']: item for item in messages}.values()
-            await asyncio.sleep(1)
-            self.msgs = sorted(unique_messages, key=lambda x: x['id'])
-            if flow == 'right':
-                self.left = from_msg_id + 1
-                self.right = self.msgs[-1]['id']
-            else:
-                self.right = from_msg_id - 1
-                self.left = self.msgs[0]['id']
+                for slice_ids in each_slice(msgs_ids, 10):
+                    msgs = await self.app.get_messages(int(channel_metadata['id']), slice_ids)
+                    for message in msgs:
+                        if message.empty:
+                            msg_data = {
+                                'id': message.id,
+                                'empty': True,
+                                'text': None,
+                                'datetime': None,
+                                'date': None,
+                                'link': None,
+                                'sender_chat_id': None,
+                                'sender_chat_user_name': None,
+                                'user': None,
+                                'user_name': None,
+                                'chat_id': channel_metadata['id'],
+                            }
+                        else:
+                            msg_data = {
+                                'id': message.id,
+                                'empty': False,
+                                'text': process_msg(message),
+                                'datetime': str(message.date),
+                                'date': str(message.date.date()),
+                                'link': message.link,
+                                'sender_chat_id': message.sender_chat.id if message.sender_chat else None,
+                                'sender_chat_user_name': message.sender_chat.username if message.sender_chat else None,
+                                'user': message.from_user.id if message.from_user else None,
+                                'user_name': f'@{message.from_user.username}' if message.from_user else None,
+                                'chat_id': channel_metadata['id'],
+                            }
+                            if msg_data['text'] == '':
+                                msg_data['empty'] = True
+                        print(msg_data)
+                        messages[msg_data['id']] = msg_data
+                    await asyncio.sleep(1)
+            self.msgs = messages.values()
+            self.left = 0 if len(msgs_ids) == 0 else msgs_ids[0]
+            self.right = 0 if len(msgs_ids) == 0 else msgs_ids[-1]
         finally:
             print(f'{self} done')
 

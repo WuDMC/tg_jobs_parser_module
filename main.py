@@ -8,9 +8,16 @@ from tg_jobs_parser.utils import json_helper
 from tg_jobs_parser.configs import vars, volume_folder_path
 import os
 
+
+
+# metadata downloaded from cloud
 CL_CHANNELS_LOCAL_PATH = os.path.join(volume_folder_path, 'gsc_channels_metadata.json')
+# metadata parser from telegram
 TG_CHANNELS_LOCAL_PATH = os.path.join(volume_folder_path, 'tg_channels_metadata.json')
+# metadata merged locally
 MG_CHANNELS_LOCAL_PATH = os.path.join(volume_folder_path, 'merged_channels_metadata.json')
+# metadata uploadede to cloud (messages)
+UP_CHANNELS_LOCAL_PATH = os.path.join(volume_folder_path, 'uploaded_msgs_metadata.json')
 
 
 def job_one(force=False, date=vars.START_DATE):
@@ -30,7 +37,7 @@ def job_one(force=False, date=vars.START_DATE):
     channel_parser = ChannelParser()
     dialogs = channel_parser.get_channels()
     # channel_parser.client.stop()
-    json_helper.save_to_json(file=dialogs, path=TG_CHANNELS_LOCAL_PATH)
+    json_helper.save_to_json(data=dialogs, path=TG_CHANNELS_LOCAL_PATH)
 
     print('get metadata from cloud')
     storage_manager = StorageManager()
@@ -115,30 +122,68 @@ def job_three():
             continue
         job_two(channels[ch_id])
 
-
+import re
+file_pattern = re.compile(
+    r'^msgs(?P<chat_id>-?\d+)_left_(?P<left>\d+)_right_(?P<right>\d+)\.json$'
+)
 def job_four():
     """
-    after all messages downloaded  load AVRO to GCS
+    after all messages downloaded  load to GCS
     update cloud metadata with left and right ids if loaded OK
     :return:
     """
+    storage_manager = StorageManager()
+    storage_manager.download_channels_metadata(path=CL_CHANNELS_LOCAL_PATH)
+    results = {}
+    for filename in os.listdir(volume_folder_path):
+        match = file_pattern.match(filename)
+        if match:
+            chat_id = match.group('chat_id')
+            left = int(match.group('left'))
+            right = int(match.group('right'))
+            blob_path = f'{chat_id}/{filename}'
+            uploaded = storage_manager.upload_message(os.path.join(volume_folder_path, filename), blob_path)
+            # uploaded = True
+            if uploaded:
+                results[chat_id] = {
+                    'new_left_saved_id': left,
+                    'new_right_saved_id': right,
+                    'uploaded_path': blob_path
+                }
+                storage_manager.delete_local_file(os.path.join(volume_folder_path, filename))
+    json_helper.save_to_json(results, UP_CHANNELS_LOCAL_PATH)
+    json_helper.update_uploaded_borders(CL_CHANNELS_LOCAL_PATH, UP_CHANNELS_LOCAL_PATH, MG_CHANNELS_LOCAL_PATH)
+    storage_manager.update_channels_metadata(MG_CHANNELS_LOCAL_PATH)
 
-
-def job_five():
+def check_unparsed_msgs():
     """
     just check how much messages we have
     :return:
     """
+    storage_manager = StorageManager()
+    storage_manager.download_channels_metadata(path=CL_CHANNELS_LOCAL_PATH)
     channels = json_helper.read_json(CL_CHANNELS_LOCAL_PATH)
     total_difference = sum(
-        group["last_posted_message_id"] - group["target_id"]
+        group["last_posted_message_id"] - group["target_id"] - ((group.get("right_saved_id") or 0) - (group.get("left_saved_id") or 0))
         for group in channels.values()
-        if group["status"] == "ok" and group[
-            'type'] == 'ChatType.CHANNEL' and "last_posted_message_id" in group and "target_id" in group
+        if group["status"] == "ok" and group['type'] == 'ChatType.CHANNEL' and "last_posted_message_id" in group and "target_id" in group
     )
-    print(total_difference)
+    print(f'need to download total: {total_difference}')
+    return total_difference
 
 
-job_one()
-# job_five()
-job_three()
+
+job_one() # качаю метадату о каналах
+check_unparsed_msgs() # проверяю сколько скачать надо сообщений из каналов
+job_three() # качаю 20 сообщения из каналов
+job_four() # обновляю метадату о скачанных сообщениях
+
+check_unparsed_msgs() # проверяю сколько скачать надо сообщений из каналов
+job_one() # обновляю метадату о каналах
+job_three() # качаю еще 20 сообщения из каналов
+job_four() # обновляю метадату о скачанных сообщениях
+
+check_unparsed_msgs() # проверяю сколько скачать надо сообщений из каналов
+job_one() # обновляю метадату о каналах
+job_three() # качаю еще 20 сообщения из каналов
+job_four() # обновляю метадату о скачанных сообщениях
