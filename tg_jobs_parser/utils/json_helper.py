@@ -102,11 +102,11 @@ def update_uploaded_borders(file_path_1, file_path_2, output_path):
                     logging.info(
                         f"Updating right_saved_id for {key} from {data1[key].get('right_saved_id')} to {values['new_right_saved_id']}")
                     data1[key]['right_saved_id'] = values['new_right_saved_id']
-                elif values['new_left_saved_id'] < data1[key]['left_saved_id'] == values['new_right_saved_id']:
+                elif values['new_left_saved_id'] < data1[key]['left_saved_id'] and values['new_right_saved_id'] == data1[key]['left_saved_id'] + 1:
                     logging.info(
                         f"Updating left_saved_id for {key} from {data1[key].get('left_saved_id')} to {values['new_left_saved_id']}")
                     data1[key]['left_saved_id'] = values['new_left_saved_id']
-                elif values['new_right_saved_id'] > data1[key]['right_saved_id'] == values['new_left_saved_id']:
+                elif values['new_right_saved_id'] > data1[key]['right_saved_id'] and values['new_left_saved_id'] == data1[key]['right_saved_id'] + 1:
                     logging.info(
                         f"Updating right_saved_id for {key} from {data1[key].get('right_saved_id')} to {values['new_right_saved_id']}")
                     data1[key]['right_saved_id'] = values['new_right_saved_id']

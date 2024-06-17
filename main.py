@@ -102,10 +102,13 @@ def job_two(channel, save_to=volume_folder_path):
     # flow left:  target_id <<<= left border or last_posted_message_id
     print(f'{channel} will be saved to {save_to}')
     msgs, left, right = parser.run_chat_parser(channel)
-    json_helper.save_to_line_delimeted_json(
-        msgs,
-        os.path.join(save_to, f"msgs{channel['id']}_left_{left}_right_{right}.json")
-    )
+    if msgs:
+        json_helper.save_to_line_delimeted_json(
+            msgs,
+            os.path.join(save_to, f"msgs{channel['id']}_left_{left}_right_{right}.json")
+        )
+    else:
+        print(f"Nothing to save channel: {channel['id']}")
 
 
 def job_three():
@@ -160,30 +163,71 @@ def check_unparsed_msgs():
     just check how much messages we have
     :return:
     """
+    channels_total = 0
+    channels_done = 0
+    channels_to_update = 0
+    bad_channels = 0
+    total_difference = 0
+    bad_channels_ids = []
+
     storage_manager = StorageManager()
     storage_manager.download_channels_metadata(path=CL_CHANNELS_LOCAL_PATH)
     channels = json_helper.read_json(CL_CHANNELS_LOCAL_PATH)
-    total_difference = sum(
-        group["last_posted_message_id"] - group["target_id"] - ((group.get("right_saved_id") or 0) - (group.get("left_saved_id") or 0))
-        for group in channels.values()
-        if group["status"] == "ok" and group['type'] == 'ChatType.CHANNEL' and "last_posted_message_id" in group and "target_id" in group
-    )
+
+    for group in channels.values():
+        if group["status"] == "ok" and group[
+            'type'] == 'ChatType.CHANNEL' and "last_posted_message_id" in group and "target_id" in group:
+            difference = group["last_posted_message_id"] - group["target_id"] - (
+                        (group.get("right_saved_id") or 0) - (group.get("left_saved_id") or 0))
+            total_difference += difference
+            channels_total += 1
+
+            if difference == 0:
+                channels_done += 1
+            elif difference > 0:
+                channels_to_update += 1
+            else:
+                bad_channels += 1
+                bad_channels_ids.append(group.get("id"))
+
     print(f'need to download total: {total_difference}')
-    return total_difference
+    print(f'channels_total: {channels_total}')
+    print(f'channels_done: {channels_done}')
+    print(f'channels_to_update: {channels_to_update}')
+    print(f'bad_channels: {bad_channels}')
+    print(f'bad_channels_ids: {bad_channels_ids}')
 
 
-
-job_one() # качаю метадату о каналах
+print('cicle 1')
+# job_one() # качаю метадату о каналах
+print('cicle 1')
 check_unparsed_msgs() # проверяю сколько скачать надо сообщений из каналов
+print('cicle 1')
 job_three() # качаю 20 сообщения из каналов
+print('cicle 1')
 job_four() # обновляю метадату о скачанных сообщениях
 
+
+
+print('cicle 2')
 check_unparsed_msgs() # проверяю сколько скачать надо сообщений из каналов
-job_one() # обновляю метадату о каналах
+print('cicle 2')
+# job_one() # обновляю метадату о каналах
+print('cicle 2')
 job_three() # качаю еще 20 сообщения из каналов
+print('cicle 2')
 job_four() # обновляю метадату о скачанных сообщениях
 
+
+
+print('cicle 3')
 check_unparsed_msgs() # проверяю сколько скачать надо сообщений из каналов
-job_one() # обновляю метадату о каналах
+print('cicle 3')
+# job_one() # обновляю метадату о каналах
+print('cicle 3')
 job_three() # качаю еще 20 сообщения из каналов
+print('cicle 3')
 job_four() # обновляю метадату о скачанных сообщениях
+print('cicle 3')
+check_unparsed_msgs() # проверяю сколько скачать надо сообщений из каналов
+print('cicle 3')

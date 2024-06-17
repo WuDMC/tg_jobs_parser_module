@@ -14,6 +14,9 @@ class StorageManager:
     def upload_file(self, source_file_name, destination_blob_name):
         bucket = self.client.bucket(self.config.bucket_name)
         blob = bucket.blob(destination_blob_name)
+        if blob.exists():
+            logging.info(f"File: {destination_blob_name} already exists")
+            return False
         blob.upload_from_filename(source_file_name)
         if blob.exists():
             logging.info(f"Upload  to GCS  successful: {destination_blob_name}")
