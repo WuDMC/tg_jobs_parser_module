@@ -104,6 +104,9 @@ class TelegramParser:
                     await asyncio.sleep(1)
                     logging.info(f'msg id {message.id} with date {str(message.date)}')
                     self.message_data = [message.id or None, str(message.date) or None]
+        except Exception as e:
+            logging.error(f'Error: {e}')
+            return None
         finally:
             logging.info(f'{self} done')
 
