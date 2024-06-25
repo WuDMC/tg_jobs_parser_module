@@ -33,11 +33,11 @@ class TelegramClient:
             async with self.app as app:
                 if chat_id:
                     async for message in app.get_chat_history(int(chat_id), limit=1):
-                        logging.info(message.text)
+                        logging.info(f'{message.text}')
                 elif username:
                     chat = await app.get_chat(username)
                     async for message in app.get_chat_history(chat.id, limit=1):
-                        logging.info(message.text)
+                        logging.info(f'{message.text}')
         except PeerIdInvalid:
             logging.error("Error: Invalid peer ID. Ensure the bot/client has access to this chat.")
         finally:

@@ -102,7 +102,7 @@ class TelegramParser:
             async with self.app as app:
                 async for message in self.app.get_chat_history(int(chat_id), limit=1, offset_date=date):
                     await asyncio.sleep(1)
-                    logging.info(message.id, str(message.date))
+                    logging.info(f'msg id {message.id} with date {str(message.date)}')
                     self.message_data = [message.id or None, str(message.date) or None]
         finally:
             logging.info(f'{self} done')
@@ -144,15 +144,15 @@ class TelegramParser:
                                 'datetime': str(message.date),
                                 'date': str(message.date.date()),
                                 'link': message.link,
-                                'sender_chat_id': message.sender_chat.id if message.sender_chat else None,
+                                'sender_chat_id': str(message.sender_chat.id) if message.sender_chat else None,
                                 'sender_chat_user_name': message.sender_chat.username if message.sender_chat else None,
-                                'user': message.from_user.id if message.from_user else None,
+                                'user': str(message.from_user.id) if message.from_user else None,
                                 'user_name': f'@{message.from_user.username}' if message.from_user else None,
-                                'chat_id': channel_metadata['id'],
+                                'chat_id': str(channel_metadata['id']),
                             }
                             if msg_data['text'] == '':
                                 msg_data['empty'] = True
-                        logging.info(msg_data)
+                        logging.info(f'{msg_data}')
                         messages[msg_data['id']] = msg_data
                     await asyncio.sleep(1)
         except Exception as e:

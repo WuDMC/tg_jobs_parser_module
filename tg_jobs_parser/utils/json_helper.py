@@ -63,7 +63,7 @@ def make_row_msg_status(file, match, status):
         'filename': file['name'],
         'path': file['full_path'],
         'status': status,
-        'chat_id': chat_id,
+        'chat_id': str(chat_id),
         'from': int(left),
         'to': int(right),
         'size': file.get('size', None),

@@ -36,16 +36,24 @@ class BigQueryManager:
                             uri, table_id, job_config=job_config
                         )
             job.result()  # Waits for the job to complete.
-            table = self.client.get_table(table_id)  # Make an API request.
-            logging.info(
-                "Tabgle got {} rows and {} columns. Table name is {}".format(
-                    table.num_rows, len(table.schema), table_id
-                )
-            )
+            self.check_table_stats(table_id)
             return True
         except Exception as e:
             logging.error(f'Error: {e}')
             return False
+
+    def check_table_stats(self, table_id):
+        try:
+            table = self.client.get_table(table_id)  # Make an API request.
+            logging.info(
+                "Table got {} rows and {} columns. Table name is {}".format(
+                    table.num_rows, len(table.schema), table_id
+                )
+            )
+        except Exception as e:
+            logging.error(f'Error: {e}')
+            return False
+
 
     def check_connection(self):
         try:
@@ -56,7 +64,7 @@ class BigQueryManager:
             query_job = self.client.query(QUERY)  # API request
             rows = query_job.result()  # Waits for query to finish
             for row in rows:
-                logging.info(row.name)
+                logging.info(f'{row.name}')
             return True
         except NotFound:
             return False
