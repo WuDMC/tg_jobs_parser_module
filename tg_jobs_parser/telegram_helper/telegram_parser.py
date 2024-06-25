@@ -134,7 +134,7 @@ class TelegramParser:
                                 'sender_chat_user_name': None,
                                 'user': None,
                                 'user_name': None,
-                                'chat_id': channel_metadata['id'],
+                                'chat_id': str(channel_metadata['id']),
                             }
                         else:
                             msg_data = {

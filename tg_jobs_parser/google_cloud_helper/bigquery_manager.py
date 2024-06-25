@@ -6,14 +6,46 @@ import logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 class BigQueryManager:
-    def __init__(self, project_id):
+    def __init__(self, project_id=vars.PROJECT_ID):
         self.config = GoogleCloudConfig()
         self.client = bigquery.Client()
+        self.schema_msgs_status = [
+                bigquery.SchemaField('filename', 'STRING'),
+                bigquery.SchemaField('path', 'STRING'),
+                bigquery.SchemaField('status', 'STRING'),
+                bigquery.SchemaField('created_at', 'TIMESTAMP'),
+                bigquery.SchemaField('updated_at', 'TIMESTAMP'),
+                bigquery.SchemaField('created_date', 'DATE'),
+                bigquery.SchemaField('size', 'INTEGER'),
+                bigquery.SchemaField('to', 'INTEGER'),
+                bigquery.SchemaField('from', 'INTEGER'),
+                bigquery.SchemaField('chat_id', 'STRING')
+            ]
+        self.schema_msgs_raw = [
+                bigquery.SchemaField('id', 'INTEGER'),
+                bigquery.SchemaField('empty', 'BOOLEAN'),
+                bigquery.SchemaField('text', 'STRING'),
+                bigquery.SchemaField('datetime', 'TIMESTAMP'),
+                bigquery.SchemaField('date', 'DATE'),
+                bigquery.SchemaField('link', 'STRING'),
+                bigquery.SchemaField('sender_chat_id', 'STRING'),
+                bigquery.SchemaField('sender_chat_user_name', 'STRING'),
+                bigquery.SchemaField('user', 'STRING'),
+                bigquery.SchemaField('user_name', 'STRING'),
+                bigquery.SchemaField('chat_id', 'STRING'),
+            ]
 
     def load_json_to_bigquery(self, json_file_path, table_id):
+        if table_id == f'{vars.BIGQUERY_DATASET}.{vars.BIGQUERY_UPLOAD_STATUS_TABLE}':
+            schema = self.schema_msgs_status
+        elif table_id == f'{vars.BIGQUERY_DATASET}.{vars.BIGQUERY_RAW_MESSAGES_TABLE}':
+            schema = self.schema_msgs_raw
+        else:
+            raise 'NO schema FOUND'
         job_config = bigquery.LoadJobConfig(
             source_format=bigquery.SourceFormat.NEWLINE_DELIMITED_JSON,
-            autodetect=True
+            autodetect=False,  # Disable autodetection
+            schema=schema
         )
         with open(json_file_path, "rb") as source_file:
             job = self.client.load_table_from_file(source_file, table_id, job_config=job_config)
@@ -27,9 +59,16 @@ class BigQueryManager:
 
     def load_json_uri_to_bigquery(self, path, table_id):
         uri = f'gs://{vars.GCS_BUCKET_NAME}/{path}'
+        if table_id == f'{vars.BIGQUERY_DATASET}.{vars.BIGQUERY_UPLOAD_STATUS_TABLE}':
+            schema = self.schema_msgs_status
+        elif table_id == f'{vars.BIGQUERY_DATASET}.{vars.BIGQUERY_RAW_MESSAGES_TABLE}':
+            schema = self.schema_msgs_raw
+        else:
+            raise 'NO schema FOUND'
         job_config = bigquery.LoadJobConfig(
             source_format=bigquery.SourceFormat.NEWLINE_DELIMITED_JSON,
-            autodetect=True
+            autodetect=False,  # Disable autodetection
+            schema=schema
         )
         try:
             job = self.client.load_table_from_uri(
