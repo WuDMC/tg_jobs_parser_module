@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 import os
 
 load_dotenv()
-volume_folder_path = os.path.join(os.getenv('TG_PARSER_HOME'), vars.VOLUME_DIR)
+volume_folder_path = os.path.join(os.getenv("TG_PARSER_HOME"), vars.VOLUME_DIR)
 
 
 class GoogleCloudConfig:
@@ -29,9 +29,9 @@ class GoogleCloudConfig:
 class TelegramConfig:
     def __init__(self):
         load_dotenv()
-        self.session_string = os.getenv('SESSION_STRING')
-        self.api_id = os.getenv('TG_API_ID')
-        self.api_hash = os.getenv('TG_API_HASH')
+        self.session_string = os.getenv("SESSION_STRING")
+        self.api_id = os.getenv("TG_API_ID")
+        self.api_hash = os.getenv("TG_API_HASH")
 
     def get_api_id(self):
         return self.api_id

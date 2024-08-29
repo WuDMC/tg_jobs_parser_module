@@ -7,7 +7,7 @@ test:
 
 format:
 	black tests
-	black *.py
+	find . -path ./venv -prune -o -name "*.py" -exec black {} +
 
 lint:
 	pylint --disable=R,C *.py
