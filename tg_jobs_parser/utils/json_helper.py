@@ -173,8 +173,6 @@ def update_uploaded_borders(file_path_1, file_path_2, output_path):
 def set_target_ids(tg_channels, cloud_channels, msg_parser, date, force):
     for ch_id in tg_channels:
         try:
-            if ch_id == '5388854721':
-                print('test')
             tg_channel = tg_channels.get(ch_id, {})
             cloud_channel = cloud_channels.get(ch_id, {})
             if ch_id in vars.BANNED_CHATS:
@@ -213,6 +211,5 @@ def set_target_ids(tg_channels, cloud_channels, msg_parser, date, force):
             else:
                 cloud_channel["status"] = "bad"
         except Exception as e:
-            print(str(e))
-            return ''
+            raise Exception(f"Error json helper: {e}")
 
