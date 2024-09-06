@@ -7,8 +7,8 @@ import os
 
 msg_parser = TelegramParser()
 bigquery_manager = BigQueryManager("geo-roulette")
-max_messages_limit = 5
-day_limit = 4
+max_messages_limit = 2
+day_limit = 7
 def send_messages():
     try:
         logging.info("Downloading channels metadata")

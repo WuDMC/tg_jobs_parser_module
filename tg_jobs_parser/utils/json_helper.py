@@ -188,7 +188,8 @@ def set_target_ids(tg_channels, cloud_channels, msg_parser, date, force):
                 cloud_channel["status"] = "bad"
                 logging.info(f"{ch_id} is PRIVATE - skip")
                 continue
-            if cloud_channel["target_date"] and force is False:
+
+            if "target_date" in cloud_channel and force is False:
                 logging.info(f"for {ch_id} target date already setted")
                 continue
 
@@ -200,7 +201,7 @@ def set_target_ids(tg_channels, cloud_channels, msg_parser, date, force):
                 logging.info(f"{ch_id} was cleared - update last id")
                 tg_channel["last_posted_message_id"] = cloud_channel["right_saved_id"]
 
-            cloud_channels.setdefault(ch_id, {"target_date": None})
+            cloud_channel.setdefault("target_date", None)
             msgs_data = msg_parser.run_msg_parser(ch_id, date)
             if msgs_data:
                 cloud_channel["left_saved_id"] = None

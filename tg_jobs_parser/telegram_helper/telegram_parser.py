@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 from tg_jobs_parser.configs import TelegramConfig
 from tg_jobs_parser.telegram_helper.telegram_client import TelegramClient
 from tg_jobs_parser.configs import vars
+import random
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
@@ -23,6 +24,75 @@ CV = "#resume #cv #de #dataengineer #python #gcp #airflow\n" \
      "By the way checkout my fresh [📊LOOKER DASHBOARD📊]" \
      "(https://lookerstudio.google.com/reporting/87cf00b3-86c9-4203-865b-54320c762bb6/page/p_wxovev1bkd)" \
      " with job listings from 400 telegram channels. **If you are also looking for a job it would be a great hint**"
+
+CV_FILE = '/mnt/01D795055BB59180/work/Den Mironov - DE CV.pdf'
+CV_NOLINKS = "#resume #cv #de #dataengineer #python #gcp #airflow\n" \
+     "👋 Hi there! I'm Den, a **Data Engineer with a focus on Analytics & BI.**\n" \
+     " I have 3 years of experience in data-driven development and a 5 years" \
+     " background in digital marketing & end-to-end analytics." \
+     "I'm currently looking for remote opportunities where I can leverage my skills " \
+     "in building and optimizing BI systems 📊\n\n" \
+     "**Let's connect on 🌐LinkedIn**—" \
+     "happy to network and help each other now or in the future!\n\n" \
+
+CVS = [
+    "#resume #cv #dataengineer #python #gcp #airflow\n"
+    "👋Hi there! I’m Den, a **Data Engineer specializing in Analytics and Business Intelligence.**\n"
+    "I bring 3 years of experience in data-driven development, along with a 5-year background in digital marketing and full-stack analytics.\n"
+    "I’m currently open to remote opportunities where I can apply my skills in building and optimizing BI systems 📊.\n"
+    "**Let’s connect on 🌐LinkedIn**—always happy to network and help each other, now or in the future!\n\n",
+
+    "#resume #cv #dataengineer #python #gcp #airflow\n"
+    "Hey! 👋I’m Den, a **Data Engineer focused on Analytics & BI.**\n"
+    "With 3 years of experience in data-driven solutions and a 5-year background in digital marketing and analytics, I’m now looking for remote roles where I can contribute to the development and optimization of BI systems 📊.\n"
+    "**Connect with me on 🌐LinkedIn**—I’d love to network and collaborate for future opportunities!\n\n",
+
+    "#resume #cv #dataengineer #python #gcp #airflow\n"
+    "👋Hello! I’m Den, a **Data Engineer with a strong focus on Analytics and BI.**\n"
+    "I have 3 years of experience working in data-driven development and 5 years in digital marketing and analytics.\n"
+    "I’m actively seeking remote positions where I can apply my expertise in building and enhancing BI systems 📊.\n"
+    "**Let’s connect on 🌐LinkedIn**—looking forward to networking and supporting each other in future endeavors!\n\n",
+
+    "#resume #cv #dataengineer #python #gcp #airflow\n"
+    "Hi! 👋I’m Den, a **Data Engineer specialized in Analytics and BI.**\n"
+    "I have 3 years of experience in creating data-driven solutions, combined with 5 years of work in digital marketing and comprehensive analytics.\n"
+    "I’m open to remote opportunities to apply my skills in building and improving BI systems 📊.\n"
+    "**Feel free to connect with me on 🌐LinkedIn**—I’m always happy to build connections and offer support for future projects!\n\n",
+
+    "#resume #cv #dataengineer #python #gcp #airflow\n"
+    "Hey there👋 I’m Den, a **Data Engineer focused on Business Intelligence and Analytics.**\n"
+    "With 3 years of experience in data-driven development and 5 years of experience in digital marketing and full-spectrum analytics, I’m seeking remote opportunities to contribute my skills to building and optimizing BI systems 📊.\n"
+    "**Let’s connect on 🌐LinkedIn**—always open to networking and collaborating for future opportunities!\n\n",
+
+    "#resume #cv #dataengineer #python #gcp #airflow\n"
+    "Hi👋 I’m Den, a **Data Engineer with expertise in Analytics and BI.**\n"
+    "I have 3 years of experience in data-driven development, paired with a 5-year background in digital marketing and end-to-end analytics.\n"
+    "I’m currently seeking remote job opportunities where I can put my skills to work on building and optimizing BI systems 📊.\n"
+    "**Let’s connect on 🌐LinkedIn**—I’m always happy to network and help each other out in the future!\n\n",
+
+    "#resume #cv #dataengineer #python #gcp #airflow\n"
+    "Hello! I’m Den, a **Data Engineer passionate about Analytics and BI.**\n"
+    "With 3 years of experience in data-driven solutions and 5 years in the digital marketing and analytics field, I’m looking for remote roles where I can use my expertise in building and enhancing BI systems 📊.\n"
+    "**Connect with me on 🌐LinkedIn**—I’m eager to network and collaborate for future opportunities!\n\n",
+
+    "#resume #cv #dataengineer #python #gcp #airflow\n"
+    "Hi there! I’m Den, a **Data Engineer focusing on Analytics & BI.**\n"
+    "I bring 3 years of experience working in data-driven development along with a 5-year background in digital marketing and complete analytics processes.\n"
+    "I’m seeking remote opportunities to apply my skills in building and optimizing BI systems 📊.\n"
+    "**Let’s connect on 🌐LinkedIn**—I’m always open to networking and future collaborations!\n\n",
+
+    "#resume #cv #dataengineer #python #gcp #airflow\n"
+    "Hey! I’m Den, a **Data Engineer with a focus on Analytics and Business Intelligence.**\n"
+    "With 3 years of experience in data-driven development and a 5-year background in digital marketing and analytics, I’m currently exploring remote opportunities to contribute my skills in building and optimizing BI systems 📊.\n"
+    "**Let’s connect on 🌐LinkedIn**—I’d love to network and potentially collaborate in the future!\n\n",
+
+    "#resume #cv #dataengineer #python #gcp #airflow\n"
+    "Hi! I’m Den, a **Data Engineer with a specialization in Analytics and BI.**\n"
+    "I have 3 years of experience in data-driven development, plus 5 years of expertise in digital marketing and comprehensive analytics.\n"
+    "I’m open to remote opportunities where I can leverage my skills in building and improving BI systems 📊.\n"
+    "**Feel free to connect with me on 🌐LinkedIn**—I’m always open to networking and helping each other in the future!\n\n"
+]
+
 
 
 def each_slice(arr, n):
@@ -117,8 +187,11 @@ class TelegramParser:
 
     async def cv_message(self, chat_id="me"):
         async with self.app:
-            self.result = await self.app.send_message(chat_id, CV)
-        return self.result
+            # self.result = await self.app.send_message(chat_id, CV)
+            self.result = await self.app.send_document(chat_id=chat_id,
+                                                       document=CV_FILE,
+                                                       caption=random.choice(CVS))
+
 
     def get_channels(self):
         self.app.run(self.get_all_channels())
@@ -232,3 +305,4 @@ class TelegramParser:
     def send_cv(self, chat_id):
         self.app.run(self.cv_message(chat_id))
         return self.result
+
