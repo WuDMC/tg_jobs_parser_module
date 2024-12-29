@@ -96,12 +96,12 @@ class BigQueryManager:
 
     def check_table_stats(self, table_id):
         try:
-            table = self.client.get_table(table_id)  # Make an API request.
-            logging.info(
-                "Table got {} rows and {} columns. Table name is {}".format(
+            table = self.client.get_table(table_id)
+            msg = "Table got {} rows and {} columns. Table name is {}".format(
                     table.num_rows, len(table.schema), table_id
                 )
-            )
+            logging.info(msg)
+            return msg
         except Exception as e:
             logging.error(f"Error: {e}")
             return False
