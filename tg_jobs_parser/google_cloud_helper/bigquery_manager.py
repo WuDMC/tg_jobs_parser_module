@@ -87,7 +87,7 @@ class BigQueryManager:
         )
         try:
             job = self.client.load_table_from_uri(uri, table_id, job_config=job_config)
-            job.result()  # Waits for the job to complete.
+            # job.result()  # Waits for the job to complete.
             self.check_table_stats(table_id)
             return True
         except Exception as e:
