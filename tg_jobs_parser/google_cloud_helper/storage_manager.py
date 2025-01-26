@@ -11,6 +11,16 @@ logging.basicConfig(
 )
 
 
+def delete_local_file(file_path):
+    try:
+        os.remove(file_path)
+        logging.info(f"Local file {file_path} deleted successfully.")
+        return True
+    except OSError as e:
+        logging.error(f"Error deleting file {file_path}: {e}")
+        return False
+
+
 class StorageManager:
     def __init__(self):
         self.config = GoogleCloudConfig()
@@ -101,15 +111,6 @@ class StorageManager:
             logging.error(f"Error: {e}")
             return None
 
-    def delete_local_file(self, file_path):
-        try:
-            os.remove(file_path)
-            logging.info(f"Local file {file_path} deleted successfully.")
-            return True
-        except OSError as e:
-            logging.error(f"Error deleting file {file_path}: {e}")
-            return False
-
     def check_channel_stats(self):
         tmp_path = os.path.join(
             volume_folder_path, "tmp_gsc_channels_metadata_for_stats.json"
@@ -142,7 +143,7 @@ class StorageManager:
                     self.statistics["bad_channels"] += 1
                     self.statistics["bad_channels_ids"].append(group.get("id"))
         self.log_statistics()
-        self.delete_local_file(tmp_path)
+        delete_local_file(tmp_path)
 
     def log_statistics(self):
         logging.info(f'msg downloaded: {self.statistics["total_downloaded"]}')

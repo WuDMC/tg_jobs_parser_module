@@ -12,18 +12,6 @@ class BigQueryManager:
     def __init__(self):
         self.config = GoogleCloudConfig()
         self.client = bigquery.Client(project=self.config.project)
-        self.schema_msgs_status = [
-            bigquery.SchemaField("filename", "STRING"),
-            bigquery.SchemaField("path", "STRING"),
-            bigquery.SchemaField("status", "STRING"),
-            bigquery.SchemaField("created_at", "TIMESTAMP"),
-            bigquery.SchemaField("updated_at", "TIMESTAMP"),
-            bigquery.SchemaField("created_date", "DATE"),
-            bigquery.SchemaField("size", "INTEGER"),
-            bigquery.SchemaField("to", "INTEGER"),
-            bigquery.SchemaField("from", "INTEGER"),
-            bigquery.SchemaField("chat_id", "STRING"),
-        ]
         self.schema_msgs_raw = [
             bigquery.SchemaField("id", "INTEGER"),
             bigquery.SchemaField("empty", "BOOLEAN"),
@@ -37,22 +25,31 @@ class BigQueryManager:
             bigquery.SchemaField("user_name", "STRING"),
             bigquery.SchemaField("chat_id", "STRING"),
         ]
-        self.schema_gorup_msg_statuses = [
-            bigquery.SchemaField("result", "BOOLEAN"),
-            bigquery.SchemaField("chat_id", "STRING"),
-            bigquery.SchemaField("msg_id", "STRING"),
-            bigquery.SchemaField("datetime", "DATETIME"),
-            bigquery.SchemaField("error", "STRING"),
-
-        ]
+        # deprecated
+        # self.schema_msgs_status = [
+        #     bigquery.SchemaField("filename", "STRING"),
+        #     bigquery.SchemaField("path", "STRING"),
+        #     bigquery.SchemaField("status", "STRING"),
+        #     bigquery.SchemaField("created_at", "TIMESTAMP"),
+        #     bigquery.SchemaField("updated_at", "TIMESTAMP"),
+        #     bigquery.SchemaField("created_date", "DATE"),
+        #     bigquery.SchemaField("size", "INTEGER"),
+        #     bigquery.SchemaField("to", "INTEGER"),
+        #     bigquery.SchemaField("from", "INTEGER"),
+        #     bigquery.SchemaField("chat_id", "STRING"),
+        # ]
+        # self.schema_gorup_msg_statuses = [
+        #     bigquery.SchemaField("result", "BOOLEAN"),
+        #     bigquery.SchemaField("chat_id", "STRING"),
+        #     bigquery.SchemaField("msg_id", "STRING"),
+        #     bigquery.SchemaField("datetime", "DATETIME"),
+        #     bigquery.SchemaField("error", "STRING"),
+        #
+        # ]
 
     def load_json_to_bigquery(self, json_file_path, table_id):
-        if table_id == f"{self.config.dataset}.{self.config.table_status}":
-            schema = self.schema_msgs_status
-        elif table_id == f"{self.config.dataset}.{self.config.table_msg}":
+        if table_id == f"{self.config.dataset}.{self.config.table_msg}":
             schema = self.schema_msgs_raw
-        elif table_id == 'tg_jobs.group_msg_statuses':
-            schema = self.schema_gorup_msg_statuses
         else:
             raise "NO schema FOUND"
         job_config = bigquery.LoadJobConfig(
@@ -74,9 +71,7 @@ class BigQueryManager:
 
     def load_json_uri_to_bigquery(self, path, table_id):
         uri = f"gs://{self.config.bucket_name}/{path}"
-        if table_id == f"{self.config.dataset}.{self.config.table_status}":
-            schema = self.schema_msgs_status
-        elif table_id == f"{self.config.dataset}.{self.config.table_msg}":
+        if table_id == f"{self.config.dataset}.{self.config.table_msg}":
             schema = self.schema_msgs_raw
         else:
             raise "NO schema FOUND"
@@ -98,8 +93,8 @@ class BigQueryManager:
         try:
             table = self.client.get_table(table_id)
             msg = "Table got {} rows and {} columns. Table name is {}".format(
-                    table.num_rows, len(table.schema), table_id
-                )
+                table.num_rows, len(table.schema), table_id
+            )
             logging.info(msg)
             return msg
         except Exception as e:
