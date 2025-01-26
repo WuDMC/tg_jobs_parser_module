@@ -182,7 +182,7 @@ class TelegramParser:
         async with self.app:
             async for dialog in self.app.get_dialogs():
                 chat = dialog.chat
-                if white_list and chat.id not in white_list:
+                if white_list and white_list != [] and str(chat.id) not in white_list:
                     continue
 
                 channel_info = {
