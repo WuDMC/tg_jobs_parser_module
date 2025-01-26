@@ -230,10 +230,9 @@ class TelegramParser:
 
     async def set_target_ids(self, cloud_channels, date, force=False):
         tg_channels = self.channels.items()
-        for ch_id in tg_channels:
+        for ch_id, tg_channel in tg_channels:
             try:
-                tg_channel = tg_channels.get(ch_id, {})
-                cloud_channel = cloud_channels.get(ch_id, {})
+                cloud_channel = cloud_channels.get(str(ch_id), {})
                 if ch_id in self.config.black_list:
                     cloud_channel["status"] = "bad"
                     logging.info(f"{ch_id} is BANNED - skip")
@@ -365,6 +364,6 @@ class TelegramParser:
         self.app.run(self.cv_message(chat_id))
         return self.result
 
-    def run_set_target_ids(self, cloud_channels, date, force=False):
+    def run_set_start_ids(self, cloud_channels, date, force=False):
         self.app.run(self.set_target_ids(cloud_channels, date, force))
         return cloud_channels
