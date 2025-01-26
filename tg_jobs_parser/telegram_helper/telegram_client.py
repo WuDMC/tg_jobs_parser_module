@@ -1,6 +1,5 @@
 from pyrogram import Client
 from pyrogram.errors import PeerIdInvalid
-from tg_jobs_parser.configs import vars
 
 import logging
 
@@ -10,17 +9,17 @@ logging.basicConfig(
 
 
 class TelegramClient:
-    def __init__(self, api_id=None, api_hash=None, session_string=None):
+    def __init__(self, name, api_id=None, api_hash=None, session_string=None):
         self.session_string = None
         if session_string:
             logging.info("authorize with session string")
             self.app = Client(
-                vars.ACCOUNT_NAME, session_string=session_string, in_memory=True
+                name=name, session_string=session_string, in_memory=True
             )
         elif api_id and api_hash:
             logging.info("authorize with api key and api hash")
             self.app = Client(
-                vars.ACCOUNT_NAME, api_id=api_id, api_hash=api_hash, in_memory=True
+                name=name, api_id=api_id, api_hash=api_hash, in_memory=True
             )
         else:
             logging.warning("not enough data for authorization")

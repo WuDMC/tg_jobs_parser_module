@@ -8,7 +8,7 @@ from tg_jobs_parser.configs import GoogleCloudConfig, vars
 
 # Инициализация
 sm = StorageManager()
-bq = BigQueryManager("geo-roulette")
+bq = BigQueryManager()
 # Настройка логирования
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
@@ -21,7 +21,7 @@ def reload():
 
         # Счётчик успешно загруженных файлов
         loaded_files = 0
-        table_id = f"{vars.BIGQUERY_DATASET}.{vars.BIGQUERY_RAW_MESSAGES_TABLE}"
+        table_id = "tg_jobs.messages_raw_v4"
         for blob in all_blobs:
             try:
                 # Попытка загрузить файл в BigQuery

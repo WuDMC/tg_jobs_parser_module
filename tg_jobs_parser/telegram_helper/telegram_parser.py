@@ -3,13 +3,11 @@ import logging
 from datetime import datetime, timezone
 from tg_jobs_parser.configs import TelegramConfig
 from tg_jobs_parser.telegram_helper.telegram_client import TelegramClient
-from tg_jobs_parser.configs import vars
 import random
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
 )
-
 
 CV = "#resume #cv #de #dataengineer #python #gcp #airflow\n" \
      "👋 Hi there! I'm Den, a **Data Engineer with a focus on Analytics & BI.**" \
@@ -27,24 +25,26 @@ CV = "#resume #cv #de #dataengineer #python #gcp #airflow\n" \
 
 CV_FILE = '/mnt/01D795055BB59180/work/Den Mironov - DE CV.pdf'
 CV_NOLINKS = "#resume #cv #de #dataengineer #python #gcp #airflow\n" \
-     "👋 Hi there! I'm Den, a **Data Engineer with a focus on Analytics & BI.**\n" \
-     " I have 3 years of experience in data-driven development and a 5 years" \
-     " background in digital marketing & end-to-end analytics." \
-     "I'm currently looking for remote opportunities where I can leverage my skills " \
-     "in building and optimizing BI systems 📊\n\n" \
-     "**Let's connect on 🌐LinkedIn**—" \
-     "happy to network and help each other now or in the future!\n\n" \
+             "👋 Hi there! I'm Den, a **Data Engineer with a focus on Analytics & BI.**\n" \
+             " I have 3 years of experience in data-driven development and a 5 years" \
+             " background in digital marketing & end-to-end analytics." \
+             "I'm currently looking for remote opportunities where I can leverage my skills " \
+             "in building and optimizing BI systems 📊\n\n" \
+             "**Let's connect on 🌐LinkedIn**—" \
+             "happy to network and help each other now or in the future!\n\n"
 
 CVS = [
     "#resume #cv #dataengineer #python #gcp #airflow\n"
     "👋Hi there! I’m Den, a **Data Engineer specializing in Analytics and Business Intelligence.**\n"
-    "I bring 3 years of experience in data-driven development, along with a 5-year background in digital marketing and full-stack analytics.\n"
+    "I bring 3 years of experience in data-driven development, along with a 5-year background in digital marketing "
+    "and full-stack analytics.\n"
     "I’m currently open to remote opportunities where I can apply my skills in building and optimizing BI systems 📊.\n"
     "**Let’s connect on 🌐LinkedIn**—always happy to network and help each other, now or in the future!\n\n",
 
     "#resume #cv #dataengineer #python #gcp #airflow\n"
     "Hey! 👋I’m Den, a **Data Engineer focused on Analytics & BI.**\n"
-    "With 3 years of experience in data-driven solutions and a 5-year background in digital marketing and analytics, I’m now looking for remote roles where I can contribute to the development and optimization of BI systems 📊.\n"
+    "With 3 years of experience in data-driven solutions and a 5-year background in digital marketing and analytics, "
+    "I’m now looking for remote roles where I can contribute to the development and optimization of BI systems 📊.\n"
     "**Connect with me on 🌐LinkedIn**—I’d love to network and collaborate for future opportunities!\n\n",
 
     "#resume #cv #dataengineer #python #gcp #airflow\n"
@@ -55,44 +55,55 @@ CVS = [
 
     "#resume #cv #dataengineer #python #gcp #airflow\n"
     "Hi! 👋I’m Den, a **Data Engineer specialized in Analytics and BI.**\n"
-    "I have 3 years of experience in creating data-driven solutions, combined with 5 years of work in digital marketing and comprehensive analytics.\n"
+    "I have 3 years of experience in creating data-driven solutions, combined with 5 years of work "
+    "in digital marketing and comprehensive analytics.\n"
     "I’m open to remote opportunities to apply my skills in building and improving BI systems 📊.\n"
-    "**Feel free to connect with me on 🌐LinkedIn**—I’m always happy to build connections and offer support for future projects!\n\n",
+    "**Feel free to connect with me on 🌐LinkedIn**—I’m always happy to build connections "
+    "and offer support for future projects!\n\n",
 
     "#resume #cv #dataengineer #python #gcp #airflow\n"
     "Hey there👋 I’m Den, a **Data Engineer focused on Business Intelligence and Analytics.**\n"
-    "With 3 years of experience in data-driven development and 5 years of experience in digital marketing and full-spectrum analytics, I’m seeking remote opportunities to contribute my skills to building and optimizing BI systems 📊.\n"
+    "With 3 years of experience in data-driven development and 5 years of experience in digital marketing "
+    "and full-spectrum analytics, I’m seeking remote opportunities to contribute my skills "
+    "to building and optimizing BI systems 📊.\n"
     "**Let’s connect on 🌐LinkedIn**—always open to networking and collaborating for future opportunities!\n\n",
 
     "#resume #cv #dataengineer #python #gcp #airflow\n"
     "Hi👋 I’m Den, a **Data Engineer with expertise in Analytics and BI.**\n"
-    "I have 3 years of experience in data-driven development, paired with a 5-year background in digital marketing and end-to-end analytics.\n"
-    "I’m currently seeking remote job opportunities where I can put my skills to work on building and optimizing BI systems 📊.\n"
+    "I have 3 years of experience in data-driven development, paired with a 5-year background "
+    "in digital marketing and end-to-end analytics.\n"
+    "I’m currently seeking remote job opportunities where I can put my skills to work "
+    "on building and optimizing BI systems 📊.\n"
     "**Let’s connect on 🌐LinkedIn**—I’m always happy to network and help each other out in the future!\n\n",
 
     "#resume #cv #dataengineer #python #gcp #airflow\n"
     "Hello! I’m Den, a **Data Engineer passionate about Analytics and BI.**\n"
-    "With 3 years of experience in data-driven solutions and 5 years in the digital marketing and analytics field, I’m looking for remote roles where I can use my expertise in building and enhancing BI systems 📊.\n"
+    "With 3 years of experience in data-driven solutions and 5 years in the digital marketing and analytics "
+    "field, I’m looking for remote roles where I can use my expertise in building and enhancing BI systems 📊.\n"
     "**Connect with me on 🌐LinkedIn**—I’m eager to network and collaborate for future opportunities!\n\n",
 
     "#resume #cv #dataengineer #python #gcp #airflow\n"
     "Hi there! I’m Den, a **Data Engineer focusing on Analytics & BI.**\n"
-    "I bring 3 years of experience working in data-driven development along with a 5-year background in digital marketing and complete analytics processes.\n"
+    "I bring 3 years of experience working in data-driven development along with a 5-year background "
+    "in digital marketing and complete analytics processes.\n"
     "I’m seeking remote opportunities to apply my skills in building and optimizing BI systems 📊.\n"
     "**Let’s connect on 🌐LinkedIn**—I’m always open to networking and future collaborations!\n\n",
 
     "#resume #cv #dataengineer #python #gcp #airflow\n"
     "Hey! I’m Den, a **Data Engineer with a focus on Analytics and Business Intelligence.**\n"
-    "With 3 years of experience in data-driven development and a 5-year background in digital marketing and analytics, I’m currently exploring remote opportunities to contribute my skills in building and optimizing BI systems 📊.\n"
+    "With 3 years of experience in data-driven development and a 5-year background "
+    "in digital marketing and analytics, I’m currently exploring remote "
+    "opportunities to contribute my skills in building and optimizing BI systems 📊.\n"
     "**Let’s connect on 🌐LinkedIn**—I’d love to network and potentially collaborate in the future!\n\n",
 
     "#resume #cv #dataengineer #python #gcp #airflow\n"
     "Hi! I’m Den, a **Data Engineer with a specialization in Analytics and BI.**\n"
-    "I have 3 years of experience in data-driven development, plus 5 years of expertise in digital marketing and comprehensive analytics.\n"
+    "I have 3 years of experience in data-driven development, plus 5 years of expertise "
+    "in digital marketing and comprehensive analytics.\n"
     "I’m open to remote opportunities where I can leverage my skills in building and improving BI systems 📊.\n"
-    "**Feel free to connect with me on 🌐LinkedIn**—I’m always open to networking and helping each other in the future!\n\n"
+    "**Feel free to connect with me on 🌐LinkedIn**—I’m always open "
+    "to networking and helping each other in the future!\n\n"
 ]
-
 
 
 def each_slice(arr, n):
@@ -157,20 +168,23 @@ class TelegramParser:
         self.result = None
         logging.info("TelegramParser init start")
         self.config = TelegramConfig()
-        self.client = TelegramClient(session_string=self.config.get_session())
+        self.client = TelegramClient(name=self.config.account_name, session_string=self.config.session_string)
         self.app = self.client.get_client()
         self.channels = {}
         self.left = None
         self.right = None
         self.msgs = None
         self.message_data = None
-        self.channels = {}
         logging.info("TelegramParser init done")
 
-    async def get_all_channels(self):
+    async def get_all_channels(self, white_list=None):
+        white_list = white_list or self.config.white_list
         async with self.app:
             async for dialog in self.app.get_dialogs():
                 chat = dialog.chat
+                if white_list and chat.id not in white_list:
+                    continue
+
                 channel_info = {
                     "id": chat.id,
                     "title": chat.title or chat.first_name,
@@ -192,9 +206,8 @@ class TelegramParser:
                                                        document=CV_FILE,
                                                        caption=random.choice(CVS))
 
-
-    def get_channels(self):
-        self.app.run(self.get_all_channels())
+    def get_channels(self, white_list=None):
+        self.app.run(self.get_all_channels(white_list))
         return self.channels
 
     async def get_message_id(self, chat_id, target_date):
@@ -215,12 +228,58 @@ class TelegramParser:
         finally:
             logging.info(f"{self} done")
 
+    async def set_target_ids(self, cloud_channels, date, force=False):
+        tg_channels = self.channels.items()
+        for ch_id in tg_channels:
+            try:
+                tg_channel = tg_channels.get(ch_id, {})
+                cloud_channel = cloud_channels.get(ch_id, {})
+                if ch_id in self.config.black_list:
+                    cloud_channel["status"] = "bad"
+                    logging.info(f"{ch_id} is BANNED - skip")
+                    continue
+                logging.info(f"getting target date for {ch_id} ")
+                if tg_channel["type"] == "ChatType.BOT":
+                    cloud_channel["status"] = "bad"
+                    logging.info(f"{ch_id} is bot - skip")
+                    continue
+                if tg_channel["type"] == "ChatType.PRIVATE":
+                    cloud_channel["status"] = "bad"
+                    logging.info(f"{ch_id} is PRIVATE - skip")
+                    continue
+
+                if "target_date" in cloud_channel and force is False:
+                    logging.info(f"for {ch_id} target date already setted")
+                    continue
+
+                if ("last_posted_message_id" in tg_channel and
+                        "right_saved_id" in cloud_channel and
+                        tg_channel["last_posted_message_id"] and
+                        cloud_channel["right_saved_id"] and
+                        tg_channel["last_posted_message_id"] < cloud_channel["right_saved_id"]):
+                    logging.info(f"{ch_id} was cleared - update last id")
+                    tg_channel["last_posted_message_id"] = cloud_channel["right_saved_id"]
+
+                cloud_channel.setdefault("target_date", None)
+                msgs_data = await self.get_message_id(ch_id, date)
+                if msgs_data:
+                    cloud_channel["left_saved_id"] = None
+                    cloud_channel["right_saved_id"] = None
+                    cloud_channel["target_id"] = msgs_data[0]
+                    cloud_channel["target_date"] = msgs_data[1]
+                    cloud_channel["status"] = "ok"
+                else:
+                    cloud_channel["status"] = "bad"
+            except Exception as e:
+                raise Exception(f"Error json helper: {e}")
+        return cloud_channels
+
     async def parse_channel_messages(self, channel_metadata):
         try:
             ts = str(datetime.now(timezone.utc))
             from_msg_id, limit, flow = chat_parser_args(channel_metadata)
             messages = {}
-            limit = min(limit, vars.MAX_LIMIT)
+            limit = min(limit, self.config.max_limit)
             msgs_ids = generate_ids(from_msg_id, limit, flow)
             if from_msg_id is None:
                 logging.info(
@@ -306,3 +365,6 @@ class TelegramParser:
         self.app.run(self.cv_message(chat_id))
         return self.result
 
+    def run_set_target_ids(self, cloud_channels, date, force=False):
+        self.app.run(self.set_target_ids(cloud_channels, date, force))
+        return cloud_channels

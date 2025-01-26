@@ -2,7 +2,6 @@ import json
 from datetime import datetime
 import logging
 import os
-from tg_jobs_parser.configs import vars
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
@@ -170,47 +169,47 @@ def update_uploaded_borders(file_path_1, file_path_2, output_path):
         return False
 
 
-def set_target_ids(tg_channels, cloud_channels, msg_parser, date, force):
-    for ch_id in tg_channels:
-        try:
-            tg_channel = tg_channels.get(ch_id, {})
-            cloud_channel = cloud_channels.get(ch_id, {})
-            if ch_id in vars.BANNED_CHATS:
-                cloud_channel["status"] = "bad"
-                logging.info(f"{ch_id} is BANNED - skip")
-                continue
-            logging.info(f"getting target date for {ch_id} ")
-            if tg_channel["type"] == "ChatType.BOT":
-                cloud_channel["status"] = "bad"
-                logging.info(f"{ch_id} is bot - skip")
-                continue
-            if tg_channel["type"] == "ChatType.PRIVATE":
-                cloud_channel["status"] = "bad"
-                logging.info(f"{ch_id} is PRIVATE - skip")
-                continue
-
-            if "target_date" in cloud_channel and force is False:
-                logging.info(f"for {ch_id} target date already setted")
-                continue
-
-            if ("last_posted_message_id" in tg_channel and
-                    "right_saved_id" in cloud_channel and
-                    tg_channel["last_posted_message_id"] and
-                    cloud_channel["right_saved_id"] and
-                    tg_channel["last_posted_message_id"] < cloud_channel["right_saved_id"]):
-                logging.info(f"{ch_id} was cleared - update last id")
-                tg_channel["last_posted_message_id"] = cloud_channel["right_saved_id"]
-
-            cloud_channel.setdefault("target_date", None)
-            msgs_data = msg_parser.run_msg_parser(ch_id, date)
-            if msgs_data:
-                cloud_channel["left_saved_id"] = None
-                cloud_channel["right_saved_id"] = None
-                cloud_channel["target_id"] = msgs_data[0]
-                cloud_channel["target_date"] = msgs_data[1]
-                cloud_channel["status"] = "ok"
-            else:
-                cloud_channel["status"] = "bad"
-        except Exception as e:
-            raise Exception(f"Error json helper: {e}")
+# def set_target_ids(tg_channels, cloud_channels, msg_parser, black_list, date, force):
+#     for ch_id in tg_channels:
+#         try:
+#             tg_channel = tg_channels.get(ch_id, {})
+#             cloud_channel = cloud_channels.get(ch_id, {})
+#             if ch_id in black_list:
+#                 cloud_channel["status"] = "bad"
+#                 logging.info(f"{ch_id} is BANNED - skip")
+#                 continue
+#             logging.info(f"getting target date for {ch_id} ")
+#             if tg_channel["type"] == "ChatType.BOT":
+#                 cloud_channel["status"] = "bad"
+#                 logging.info(f"{ch_id} is bot - skip")
+#                 continue
+#             if tg_channel["type"] == "ChatType.PRIVATE":
+#                 cloud_channel["status"] = "bad"
+#                 logging.info(f"{ch_id} is PRIVATE - skip")
+#                 continue
+#
+#             if "target_date" in cloud_channel and force is False:
+#                 logging.info(f"for {ch_id} target date already setted")
+#                 continue
+#
+#             if ("last_posted_message_id" in tg_channel and
+#                     "right_saved_id" in cloud_channel and
+#                     tg_channel["last_posted_message_id"] and
+#                     cloud_channel["right_saved_id"] and
+#                     tg_channel["last_posted_message_id"] < cloud_channel["right_saved_id"]):
+#                 logging.info(f"{ch_id} was cleared - update last id")
+#                 tg_channel["last_posted_message_id"] = cloud_channel["right_saved_id"]
+#
+#             cloud_channel.setdefault("target_date", None)
+#             msgs_data = msg_parser.run_msg_parser(ch_id, date)
+#             if msgs_data:
+#                 cloud_channel["left_saved_id"] = None
+#                 cloud_channel["right_saved_id"] = None
+#                 cloud_channel["target_id"] = msgs_data[0]
+#                 cloud_channel["target_date"] = msgs_data[1]
+#                 cloud_channel["status"] = "ok"
+#             else:
+#                 cloud_channel["status"] = "bad"
+#         except Exception as e:
+#             raise Exception(f"Error json helper: {e}")
 

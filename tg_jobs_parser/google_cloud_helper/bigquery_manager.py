@@ -9,9 +9,9 @@ logging.basicConfig(
 
 
 class BigQueryManager:
-    def __init__(self, project_id=vars.PROJECT_ID):
+    def __init__(self):
         self.config = GoogleCloudConfig()
-        self.client = bigquery.Client()
+        self.client = bigquery.Client(project=self.config.project)
         self.schema_msgs_status = [
             bigquery.SchemaField("filename", "STRING"),
             bigquery.SchemaField("path", "STRING"),
@@ -47,9 +47,9 @@ class BigQueryManager:
         ]
 
     def load_json_to_bigquery(self, json_file_path, table_id):
-        if table_id == f"{vars.BIGQUERY_DATASET}.{vars.BIGQUERY_UPLOAD_STATUS_TABLE}":
+        if table_id == f"{self.config.dataset}.{self.config.table_status}":
             schema = self.schema_msgs_status
-        elif table_id == f"{vars.BIGQUERY_DATASET}.{vars.BIGQUERY_RAW_MESSAGES_TABLE}":
+        elif table_id == f"{self.config.dataset}.{self.config.table_msg}":
             schema = self.schema_msgs_raw
         elif table_id == 'tg_jobs.group_msg_statuses':
             schema = self.schema_gorup_msg_statuses
@@ -73,10 +73,10 @@ class BigQueryManager:
         )
 
     def load_json_uri_to_bigquery(self, path, table_id):
-        uri = f"gs://{vars.GCS_BUCKET_NAME}/{path}"
-        if table_id == f"{vars.BIGQUERY_DATASET}.{vars.BIGQUERY_UPLOAD_STATUS_TABLE}":
+        uri = f"gs://{self.config.bucket_name}/{path}"
+        if table_id == f"{self.config.dataset}.{self.config.table_status}":
             schema = self.schema_msgs_status
-        elif table_id == f"{vars.BIGQUERY_DATASET}.{vars.BIGQUERY_RAW_MESSAGES_TABLE}":
+        elif table_id == f"{self.config.dataset}.{self.config.table_msg}":
             schema = self.schema_msgs_raw
         else:
             raise "NO schema FOUND"
@@ -87,7 +87,7 @@ class BigQueryManager:
         )
         try:
             job = self.client.load_table_from_uri(uri, table_id, job_config=job_config)
-            # job.result()  # Waits for the job to complete.
+            job.result()  # Waits for the job to complete.
             self.check_table_stats(table_id)
             return True
         except Exception as e:

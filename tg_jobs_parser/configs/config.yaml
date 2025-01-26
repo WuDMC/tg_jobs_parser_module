@@ -1,0 +1,20 @@
+google_cloud:
+  service_account_path: "${GOOGLE_APPLICATION_CREDENTIALS}"
+  service_account_creds: "${GCP_CREDS}"
+  project: "${GCP_PROJECT_ID}"
+  location: "${GCP_LOCATION}"
+  bucket_name: "${GCS_BUCKET_NAME}"
+  source_msg_blob: "${MSGS_DATA_PATH}"
+  source_channels_blob: "${CHANNEL_METADATA_PATH}"
+  bq_dataset: "${BIGQUERY_DATASET}"
+  bq_table_msgs: "${BIGQUERY_RAW_MESSAGES_TABLE}"
+  bq_table_status: "${BIGQUERY_UPLOAD_STATUS_TABLE}"
+telegram:
+  api_id: "${TG_API_ID}"
+  api_hash: "${TG_API_HASH}"
+  account_name: "${ACCOUNT_NAME}"
+  session_string: "${SESSION_STRING}"
+  start_data: "${START_DATE}"
+  max_limit: 1000
+  black_list: "${BLACK_LIST}"
+  white_list: "${WHITE_LIST}"
