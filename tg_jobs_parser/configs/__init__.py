@@ -2,6 +2,7 @@ from tg_jobs_parser.configs import vars
 from dotenv import load_dotenv
 import os
 import yaml
+import json
 
 load_dotenv()
 volume_folder_path = os.path.join(os.getenv("TG_PARSER_HOME"), vars.VOLUME_DIR)
@@ -68,5 +69,5 @@ class TelegramConfig(Config):
         self.api_hash = self.get("telegram", "api_hash")
         self.max_limit = self.get("telegram", "max_limit") or 500
         self.account_name = self.get("telegram", "account_name") or DEFAULT_ACCOUNT_NAME
-        self.black_list = self.get("telegram", "black_list") or []
-        self.white_list = self.get("telegram", "white_list") or []
+        self.black_list = json.loads(self.get("telegram", "black_list")) or []
+        self.white_list = json.loads(self.get("telegram", "white_list")) or []
