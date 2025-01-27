@@ -1,4 +1,3 @@
-import google
 from google.cloud import storage
 from tg_jobs_parser.configs import GoogleCloudConfig, volume_folder_path
 from tg_jobs_parser.utils.json_helper import read_json
@@ -9,6 +8,7 @@ import os
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
 )
+
 
 # example metadata
 # {
@@ -25,15 +25,11 @@ logging.basicConfig(
 #     "left_saved_id": null,
 #     "right_saved_id": null,
 #     "target_id": 58105,
+#     "missed_msgs": 0,
 #     "status": "ok"
 #   }
-# todo add deleted_msgs(not found in backups after optimizing)
 
 
-# todo - optimize msgs backups
-# list blobs
-# in each folder download and merge all json, sort by id and load to new bucket at same path
-# create new blob with statuses
 
 def delete_local_file(file_path):
     try:
@@ -53,6 +49,7 @@ class StorageManager:
             "channels_total": 0,
             "channels_done": 0,
             "total_downloaded": 0,
+            "total_missed": 0,
             "total_difference": 0,
             "channels_to_update": 0,
             "bad_channels": 0,
@@ -85,7 +82,7 @@ class StorageManager:
 
             return files_metadata
 
-        except google.api_core.exceptions.GoogleAPIError as e:
+        except Exception as e:
             logging.error(f"Error while listing files: {e}")
             return []
 
@@ -162,6 +159,7 @@ class StorageManager:
                     and "last_posted_message_id" in group
                     and "target_id" in group
             ):
+                missed = group.get("missed_msgs") or 0
                 downloaded = (group.get("right_saved_id") or 0) - (
                         group.get("left_saved_id") or 0
                 )
@@ -169,6 +167,7 @@ class StorageManager:
                         group["last_posted_message_id"] - group["target_id"] - downloaded
                 )
                 self.statistics["total_downloaded"] += downloaded
+                self.statistics["total_missed"] += missed
                 self.statistics["total_difference"] += difference
                 self.statistics["channels_total"] += 1
 
@@ -203,6 +202,8 @@ class StorageManager:
 
     def log_statistics(self):
         logging.info(f'msg downloaded: {self.statistics["total_downloaded"]}')
+        logging.info(f'missed total: {self.statistics["total_missed"]}')
+
         logging.info(f'need to download total: {self.statistics["total_difference"]}')
         logging.info(f'channels_total: {self.statistics["channels_total"]}')
         logging.info(f'channels_done: {self.statistics["channels_done"]}')
@@ -212,5 +213,3 @@ class StorageManager:
         )
         logging.info(f'bad_channels: {self.statistics["bad_channels"]}')
         logging.info(f'bad_channels_ids: {self.statistics["bad_channels_ids"]}')
-
-
