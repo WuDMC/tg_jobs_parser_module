@@ -123,6 +123,18 @@ class StorageManager:
             logging.error(f"Upload msg to GCS failed: {path}")
             return False
 
+    def delete_blob(self, blob_name):
+        bucket = self.client.bucket(self.config.bucket_name)  # Получаем бакет
+        blob = bucket.blob(blob_name)  # Указываем путь к файлу (blob)
+
+        if blob.exists():  # Проверяем, существует ли файл
+            blob.delete()  # Удаляем файл
+            logging.info(f"File {blob_name} successfully deleted from GCS.")
+            return True
+        else:
+            logging.error(f"File {blob_name} does not exist in GCS.")
+            return False
+
     def update_channels_metadata(self, source_file_name, bucket_name=None):
         bucket_name = bucket_name or self.config.bucket_name
         bucket = self.client.bucket(bucket_name)
