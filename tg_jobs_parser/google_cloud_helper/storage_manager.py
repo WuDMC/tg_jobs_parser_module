@@ -166,7 +166,8 @@ class StorageManager:
         channels = read_json(tmp_path)
         for group in channels.values():
             if (
-                    group["status"] == "ok"
+                    "status" in group
+                    and group["status"] == "ok"
                     and group["type"] == "ChatType.CHANNEL"
                     and "last_posted_message_id" in group
                     and "target_id" in group
