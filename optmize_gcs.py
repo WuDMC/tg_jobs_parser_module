@@ -74,6 +74,7 @@ def process_data(merged_data):
 
 if __name__ == "__main__":
     sm = StorageManager()
+    json_helper.delete_files_recursively(volume_folder_path)
     cl_channels_metadata_path = f"{volume_folder_path}/new_cloud_metadata.json"
     sm.download_blob(blob_name=sm.config.source_channels_blob, path=cl_channels_metadata_path)
     cloud_metadata = json_helper.read_json(cl_channels_metadata_path)

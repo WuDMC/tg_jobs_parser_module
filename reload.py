@@ -4,6 +4,7 @@ from time import sleep
 from tg_jobs_parser.google_cloud_helper.storage_manager import StorageManager
 from tg_jobs_parser.google_cloud_helper.bigquery_manager import BigQueryManager
 from tg_jobs_parser.utils import json_helper
+from tg_jobs_parser.configs import volume_folder_path
 import logging
 
 # Инициализация
@@ -14,8 +15,11 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(
 
 def reload():
     try:
+        json_helper.delete_files_recursively(volume_folder_path)
+
         sm.check_channel_stats()
         # Получение всех файлов с метаданными
+
         all_blobs = sm.list_msgs_with_metadata()
         total_files = len(all_blobs)
         logging.info(f"Начало загрузки: найдено {total_files} файлов.")

@@ -8,6 +8,15 @@ logging.basicConfig(
 )
 
 
+def delete_files_recursively(folder_path):
+    for root, _, files in os.walk(folder_path):
+        for file in files:
+            file_path = os.path.join(root, file)
+            os.remove(file_path)
+            logging.info(f"file deleted: {file_path}")
+    logging.info(f'folder {folder_path} is clear')
+
+
 def read_json(file_path):
     if not os.path.exists(file_path):
         logging.info(f"cant find {file_path}")
@@ -85,9 +94,9 @@ def read_line_delimeted_json(file_path):
 def recursive_merge(dict1, dict2):
     for key in dict2:
         if (
-            key in dict1
-            and isinstance(dict1[key], dict)
-            and isinstance(dict2[key], dict)
+                key in dict1
+                and isinstance(dict1[key], dict)
+                and isinstance(dict2[key], dict)
         ):
             recursive_merge(dict1[key], dict2[key])
         else:
@@ -125,8 +134,8 @@ def update_uploaded_borders(file_path_1, file_path_2, output_path):
                 )
 
                 if (
-                    data1[key].get("left_saved_id") is None
-                    and data1[key].get("right_saved_id") is None
+                        data1[key].get("left_saved_id") is None
+                        and data1[key].get("right_saved_id") is None
                 ):
                     logging.info(
                         f"Updating left_saved_id for {key} from {data1[key].get('left_saved_id')} to {values['new_left_saved_id']}"
@@ -137,24 +146,24 @@ def update_uploaded_borders(file_path_1, file_path_2, output_path):
                     )
                     data1[key]["right_saved_id"] = values["new_right_saved_id"]
                 elif (
-                    values["new_left_saved_id"] < data1[key]["left_saved_id"]
-                    and values["new_right_saved_id"] == data1[key]["left_saved_id"] + 1
+                        values["new_left_saved_id"] < data1[key]["left_saved_id"]
+                        and values["new_right_saved_id"] == data1[key]["left_saved_id"] + 1
                 ):
                     logging.info(
                         f"Updating left_saved_id for {key} from {data1[key].get('left_saved_id')} to {values['new_left_saved_id']}"
                     )
                     data1[key]["left_saved_id"] = values["new_left_saved_id"]
                 elif (
-                    values["new_right_saved_id"] > data1[key]["right_saved_id"]
-                    and values["new_left_saved_id"] == data1[key]["right_saved_id"] + 1
+                        values["new_right_saved_id"] > data1[key]["right_saved_id"]
+                        and values["new_left_saved_id"] == data1[key]["right_saved_id"] + 1
                 ):
                     logging.info(
                         f"Updating right_saved_id for {key} from {data1[key].get('right_saved_id')} to {values['new_right_saved_id']}"
                     )
                     data1[key]["right_saved_id"] = values["new_right_saved_id"]
                 elif (
-                    values["new_right_saved_id"] <= data1[key]["right_saved_id"]
-                    and values["new_left_saved_id"] >= data1[key]["left_saved_id"]
+                        values["new_right_saved_id"] <= data1[key]["right_saved_id"]
+                        and values["new_left_saved_id"] >= data1[key]["left_saved_id"]
                 ):
                     logging.error(
                         f"File was already uploaded. cloud data {data1[key]} with file data {values}"
@@ -167,7 +176,6 @@ def update_uploaded_borders(file_path_1, file_path_2, output_path):
             f"Failed to update borders with file1: {file_path_1} << {file_path_2} Error: {e}"
         )
         return False
-
 
 # def set_target_ids(tg_channels, cloud_channels, msg_parser, black_list, date, force):
 #     for ch_id in tg_channels:
@@ -212,4 +220,3 @@ def update_uploaded_borders(file_path_1, file_path_2, output_path):
 #                 cloud_channel["status"] = "bad"
 #         except Exception as e:
 #             raise Exception(f"Error json helper: {e}")
-
