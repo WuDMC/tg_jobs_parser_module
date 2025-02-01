@@ -66,6 +66,9 @@ def reload():
     except Exception as e:
         # Логирование критической ошибки
         logging.critical(f"Ошибка при выполнении загрузки: {str(e)}")
+    finally:
+        json_helper.delete_files_recursively(volume_folder_path)
+
 
 
 reload()

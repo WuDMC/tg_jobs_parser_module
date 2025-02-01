@@ -73,27 +73,30 @@ def process_data(merged_data):
 
 
 if __name__ == "__main__":
-    sm = StorageManager()
-    json_helper.delete_files_recursively(volume_folder_path)
-    cl_channels_metadata_path = f"{volume_folder_path}/new_cloud_metadata.json"
-    sm.download_blob(blob_name=sm.config.source_channels_blob, path=cl_channels_metadata_path)
-    cloud_metadata = json_helper.read_json(cl_channels_metadata_path)
-    folders = sm.get_folders()
-    for folder in folders:
-        prefix = f"{sm.config.source_msg_blob}/{folder}"
-        channel_metadata = cloud_metadata[folder]
-        folder_blobs = sm.list_msgs_with_metadata(prefix)
-        if len(folder_blobs) > 1:
-            local_folder_path = sm.download_blobs(folder_blobs)
-            merged_data = merge_downloaded_blobs(local_folder_path)
-            stats, processed_data = process_data(merged_data)
-            file_name = f"msgs{folder}_left_{stats['min_id']}_right_{stats['max_id']}.json"
-            local_file_path = f"{volume_folder_path}/{file_name}"
-            json_helper.save_to_line_delimited_json(processed_data, local_file_path )
-            sm.upload_file(source_file_name=local_file_path, destination_blob_name=f'{prefix}/{file_name}', bucket='tg_msgs')
-            sm.backup_blobs(folder_blobs)
-            channel_metadata['left_saved_id'] = stats['min_id']
-            channel_metadata['right_saved_id'] = stats['max_id']
-            channel_metadata['skipped_msgs'] = stats['skipped_msgs']
-            print("stats:", stats)
-    sm.update_channels_metadata(source_file_name=cl_channels_metadata_path, bucket_name='tg_msgs')
+    try:
+        sm = StorageManager()
+        json_helper.delete_files_recursively(volume_folder_path)
+        cl_channels_metadata_path = f"{volume_folder_path}/new_cloud_metadata.json"
+        sm.download_blob(blob_name=sm.config.source_channels_blob, path=cl_channels_metadata_path)
+        cloud_metadata = json_helper.read_json(cl_channels_metadata_path)
+        folders = sm.get_folders()
+        for folder in folders:
+            prefix = f"{sm.config.source_msg_blob}/{folder}"
+            channel_metadata = cloud_metadata[folder]
+            folder_blobs = sm.list_msgs_with_metadata(prefix)
+            if len(folder_blobs) > 1:
+                local_folder_path = sm.download_blobs(folder_blobs)
+                merged_data = merge_downloaded_blobs(local_folder_path)
+                stats, processed_data = process_data(merged_data)
+                file_name = f"msgs{folder}_left_{stats['min_id']}_right_{stats['max_id']}.json"
+                local_file_path = f"{volume_folder_path}/{file_name}"
+                json_helper.save_to_line_delimited_json(processed_data, local_file_path )
+                sm.upload_file(source_file_name=local_file_path, destination_blob_name=f'{prefix}/{file_name}', bucket='tg_msgs')
+                sm.backup_blobs(folder_blobs)
+                channel_metadata['left_saved_id'] = stats['min_id']
+                channel_metadata['right_saved_id'] = stats['max_id']
+                channel_metadata['skipped_msgs'] = stats['skipped_msgs']
+                print("stats:", stats)
+        sm.update_channels_metadata(source_file_name=cl_channels_metadata_path, bucket_name='tg_msgs')
+    finally:
+        json_helper.delete_files_recursively(volume_folder_path)
