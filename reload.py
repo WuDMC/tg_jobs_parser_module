@@ -56,7 +56,6 @@ def reload():
                 error_blobs.append(blob["full_path"])
                 logging.error(f"Ошибка при загрузке файла {blob['name']}: {str(e)}")
 
-        # Финальный лог
         if len(error_blobs) > 0:
             logging.error(f"Ошибка при загрузке файлов {error_blobs}")
         logging.info(f"Загрузка завершена: всего файлов {total_files}, успешно загружено {loaded_files}.")
