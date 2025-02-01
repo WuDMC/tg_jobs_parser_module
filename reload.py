@@ -1,4 +1,5 @@
 import os
+from time import sleep
 
 from tg_jobs_parser.google_cloud_helper.storage_manager import StorageManager
 from tg_jobs_parser.google_cloud_helper.bigquery_manager import BigQueryManager
@@ -18,7 +19,7 @@ def reload():
         all_blobs = sm.list_msgs_with_metadata()
         total_files = len(all_blobs)
         logging.info(f"Начало загрузки: найдено {total_files} файлов.")
-
+        error_blobs = []
         # Счётчик успешно загруженных файлов
         loaded_files = 0
         table_id = "tg_jobs.messages_raw_v4"
@@ -31,8 +32,8 @@ def reload():
                     logging.info(f"успешно загружено {loaded_files} / всего файлов {total_files}")
                 else:
                     tmp_path = "tmpnld.json"
-                    logging.info(f"Файл НЕ загружен: {blob['name']}, пробуем оптимизировать его")
-
+                    logging.warning(f"Файл НЕ загружен: {blob['name']}, пробуем оптимизировать его")
+                    sleep(1)
                     sm.download_blob(blob_name=blob["full_path"], path=tmp_path)
                     data = json_helper.read_line_delimeted_json(tmp_path)
                     data = [
@@ -48,12 +49,16 @@ def reload():
                         logging.info(f"Файл загружен успешно: {blob['name']}")
                         logging.info(f"успешно загружено {loaded_files} / всего файлов {total_files}")
                     else:
-                        logging.info(f"Файл НЕ загружен: {blob['name']}, не вышло оптимизировать его")
+                        error_blobs.append(blob)
+                        logging.error(f"Файл НЕ загружен: {blob['name']},даже после оптимизации оптимизировать его")
             except Exception as e:
                 # Логирование ошибки при загрузке файла
+                error_blobs.append(blob["full_path"])
                 logging.error(f"Ошибка при загрузке файла {blob['name']}: {str(e)}")
 
         # Финальный лог
+        if len(error_blobs) > 0:
+            logging.error(f"Ошибка при загрузке файлов {error_blobs}")
         logging.info(f"Загрузка завершена: всего файлов {total_files}, успешно загружено {loaded_files}.")
     except Exception as e:
         # Логирование критической ошибки
