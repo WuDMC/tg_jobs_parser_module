@@ -158,6 +158,33 @@ class StorageManager:
             logging.error(f"Error: {e}")
             return None
 
+    def move_blob(self, source_blob_name, destination_blob_name):
+        """
+        Перемещает блоб внутри одного бакета в Google Cloud Storage.
+
+        :param source_blob_name: Текущее имя блоба (его путь внутри бакета).
+        :param destination_blob_name: Новое имя блоба (куда он будет перемещен).
+        :return: True, если успешно, иначе None.
+        """
+        bucket = self.client.bucket(self.config.bucket_name)
+        source_blob = bucket.blob(source_blob_name)
+
+        try:
+            # Копируем блоб на новое место
+            new_blob = bucket.copy_blob(source_blob, bucket, destination_blob_name)
+
+            # Проверяем, что новый блоб существует
+            if new_blob.exists():
+                source_blob.delete()
+                logging.info(f"Blob {source_blob_name} успешно перемещен в {destination_blob_name}")
+                return True
+            else:
+                logging.error(f"Ошибка: Новый блоб {destination_blob_name} не был создан")
+                return None
+        except Exception as e:
+            logging.error(f"Ошибка при перемещении блоба: {e}")
+            return None
+
     def check_channel_stats(self):
         tmp_path = os.path.join(
             volume_folder_path, "tmp_gsc_channels_metadata_for_stats.json"
@@ -212,6 +239,16 @@ class StorageManager:
             except Exception as e:
                 logging.error(f"Error downloading blobs and processing {blob_name}: {e}")
         return local_folder_path
+
+    def backup_blobs(self, folder_blobs, backup_path='backup'):
+        # folder_blobs - metadata from blobs from one folder
+        for blob_metadata in folder_blobs:
+            blob_name = blob_metadata["full_path"]
+            try:
+                self.move_blob(source_blob_name=blob_name, destination_blob_name=f"{backup_path}/{blob_name}")
+            except Exception as e:
+                logging.error(f"Error backup blobs and processing {blob_name}: {e}")
+        return True
 
     def log_statistics(self):
         logging.info(f'msg downloaded: {self.statistics["total_downloaded"]}')
