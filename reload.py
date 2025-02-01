@@ -13,6 +13,7 @@ bq = BigQueryManager()
 # Настройка логирования
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
+
 def reload():
     try:
         json_helper.delete_files_recursively(volume_folder_path)
@@ -28,6 +29,7 @@ def reload():
         loaded_files = 0
         table_id = "tg_jobs.messages_raw_v4"
         for blob in all_blobs:
+            sleep(2)
             try:
                 # Попытка загрузить файл в BigQuery
                 if bq.load_json_uri_to_bigquery(blob["full_path"], table_id):
@@ -46,7 +48,7 @@ def reload():
                     ]
                     json_helper.save_to_line_delimited_json(data=data, path=tmp_path)
                     sm.delete_blob(blob["full_path"])
-                    sm.upload_file(source_file_name=tmp_path,destination_blob_name=blob["full_path"])
+                    sm.upload_file(source_file_name=tmp_path, destination_blob_name=blob["full_path"])
                     os.remove(tmp_path)
                     if bq.load_json_uri_to_bigquery(blob["full_path"], table_id):
                         loaded_files += 1
@@ -70,6 +72,4 @@ def reload():
         json_helper.delete_files_recursively(volume_folder_path)
 
 
-
 reload()
-
