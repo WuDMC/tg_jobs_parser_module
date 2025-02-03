@@ -42,26 +42,29 @@ def delete_local_file(file_path):
 
 
 class StorageManager:
-    def __init__(self):
-        self.config = GoogleCloudConfig()
-        self.client = storage.Client()
-        self.statistics = {
+    STATS_TEMPLATE = {
             "channels_total": 0,
             "channels_done": 0,
             "total_downloaded": 0,
+            "download_scope": 0,
             "total_missed": 0,
-            "total_difference": 0,
             "channels_to_update": 0,
             "bad_channels": 0,
             "bad_channels_ids": [],
             "to_upd_channels_ids": [],
         }
 
-    def list_msgs_with_metadata(self, prefix=None):
+    def __init__(self):
+        self.config = GoogleCloudConfig()
+        self.client = storage.Client()
+        self.statistics = self.STATS_TEMPLATE.copy()
+
+    def list_msgs_with_metadata(self, prefix=None, bucket_name=None):
+        bucket_name = bucket_name or self.config.bucket_name
         prefix = prefix or self.config.source_msg_blob
         try:
             bucket = storage.Bucket(
-                self.client, self.config.bucket_name, user_project=self.config.project
+                self.client, bucket_name, user_project=self.config.project
             )
             all_blobs = list(
                 self.client.list_blobs(bucket, prefix=prefix)
@@ -96,9 +99,9 @@ class StorageManager:
             logging.error(f"Error while listing folders: {e}")
             return []
 
-    def upload_file(self, source_file_name, destination_blob_name, bucket=None):
-        bucket = bucket or self.config.bucket_name
-        bucket = self.client.bucket(bucket)
+    def upload_file(self, source_file_name, destination_blob_name, bucket_name=None):
+        bucket_name = bucket_name or self.config.bucket_name
+        bucket = self.client.bucket(bucket_name)
         blob = bucket.blob(destination_blob_name)
         if blob.exists():
             logging.info(f"File: {destination_blob_name} already exists")
@@ -111,8 +114,9 @@ class StorageManager:
             logging.error(f"Upload to GCS failed: {destination_blob_name}")
             return False
 
-    def upload_message(self, source_file_name, destination_blob_name):
-        bucket = self.client.bucket(self.config.bucket_name)
+    def upload_message(self, source_file_name, destination_blob_name, bucket_name=None):
+        bucket_name = bucket_name or self.config.bucket_name
+        bucket = self.client.bucket(bucket_name)
         path = f"{self.config.source_msg_blob}/{destination_blob_name}"
         blob = bucket.blob(path)
         blob.upload_from_filename(source_file_name)
@@ -123,8 +127,9 @@ class StorageManager:
             logging.error(f"Upload msg to GCS failed: {path}")
             return False
 
-    def delete_blob(self, blob_name):
-        bucket = self.client.bucket(self.config.bucket_name)  # Получаем бакет
+    def delete_blob(self, blob_name, bucket_name=None):
+        bucket_name = bucket_name or self.config.bucket_name
+        bucket = self.client.bucket(bucket_name)  # Получаем бакет
         blob = bucket.blob(blob_name)  # Указываем путь к файлу (blob)
 
         if blob.exists():  # Проверяем, существует ли файл
@@ -147,8 +152,9 @@ class StorageManager:
             logging.error(f"Error: {e}")
             return None
 
-    def download_blob(self, blob_name, path):
-        bucket = self.client.bucket(self.config.bucket_name)
+    def download_blob(self, blob_name, path, bucket_name=None):
+        bucket_name = bucket_name or self.config.bucket_name
+        bucket = self.client.bucket(bucket_name)
         blob = bucket.blob(blob_name)
         try:
             blob.download_to_filename(path)
@@ -158,15 +164,17 @@ class StorageManager:
             logging.error(f"Error: {e}")
             return None
 
-    def move_blob(self, source_blob_name, destination_blob_name):
+    def move_blob(self, source_blob_name, destination_blob_name, bucket_name=None):
         """
         Перемещает блоб внутри одного бакета в Google Cloud Storage.
 
+        :param bucket_name:
         :param source_blob_name: Текущее имя блоба (его путь внутри бакета).
         :param destination_blob_name: Новое имя блоба (куда он будет перемещен).
         :return: True, если успешно, иначе None.
         """
-        bucket = self.client.bucket(self.config.bucket_name)
+        bucket_name = bucket_name or self.config.bucket_name
+        bucket = self.client.bucket(bucket_name)
         source_blob = bucket.blob(source_blob_name)
 
         try:
@@ -185,11 +193,13 @@ class StorageManager:
             logging.error(f"Ошибка при перемещении блоба: {e}")
             return None
 
-    def check_channel_stats(self):
+    def check_channel_stats(self, bucket_name=None):
+        bucket_name = bucket_name or self.config.bucket_name
+        self.statistics = self.STATS_TEMPLATE.copy()
         tmp_path = os.path.join(
             volume_folder_path, "tmp_gsc_channels_metadata_for_stats.json"
         )
-        self.download_blob(blob_name=self.config.source_channels_blob, path=tmp_path)
+        self.download_blob(blob_name=self.config.source_channels_blob, path=tmp_path, bucket_name=bucket_name)
         channels = read_json(tmp_path)
         for group in channels.values():
             if (
@@ -200,15 +210,20 @@ class StorageManager:
                     and "target_id" in group
             ):
                 missed = group.get("missed_msgs") or 0
-                downloaded = (group.get("right_saved_id") or 0) - (
-                        group.get("left_saved_id") or 0
-                )
-                difference = (
-                        group["last_posted_message_id"] - group["target_id"] - downloaded
-                )
+                downloaded = (
+                                (group.get("right_saved_id") or 0)
+                                - (group.get("left_saved_id") or 0)
+                                + 1
+                              )
+                download_scope =  (
+                                    max(group["last_posted_message_id"], group["right_saved_id"])
+                                    - min(group["target_id"],group["left_saved_id"])
+                                    + 1
+                                )
+                difference = download_scope - downloaded
                 self.statistics["total_downloaded"] += downloaded
                 self.statistics["total_missed"] += missed
-                self.statistics["total_difference"] += difference
+                self.statistics["download_scope"] += download_scope
                 self.statistics["channels_total"] += 1
 
                 if difference == 0:
@@ -248,13 +263,15 @@ class StorageManager:
                 self.move_blob(source_blob_name=blob_name, destination_blob_name=f"{backup_path}/{blob_name}")
             except Exception as e:
                 logging.error(f"Error backup blobs and processing {blob_name}: {e}")
+                raise (str(e))
         return True
 
     def log_statistics(self):
+        logging.info(f'need to download total: {self.statistics["download_scope"]}')
         logging.info(f'msg downloaded: {self.statistics["total_downloaded"]}')
         logging.info(f'missed total: {self.statistics["total_missed"]}')
+        logging.info(f'to download: {self.statistics["download_scope"] - self.statistics["total_downloaded"]}')
 
-        logging.info(f'need to download total: {self.statistics["total_difference"]}')
         logging.info(f'channels_total: {self.statistics["channels_total"]}')
         logging.info(f'channels_done: {self.statistics["channels_done"]}')
         logging.info(f'channels_to_update: {self.statistics["channels_to_update"]}')

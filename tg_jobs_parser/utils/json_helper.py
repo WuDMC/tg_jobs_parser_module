@@ -13,7 +13,7 @@ def delete_files_recursively(folder_path):
         for file in files:
             file_path = os.path.join(root, file)
             os.remove(file_path)
-            logging.info(f"file deleted: {file_path}")
+            # logging.info(f"file deleted: {file_path}")
     logging.info(f'folder {folder_path} is clear')
 
 
