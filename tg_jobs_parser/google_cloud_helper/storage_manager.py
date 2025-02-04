@@ -193,7 +193,23 @@ class StorageManager:
             logging.error(f"Ошибка при перемещении блоба: {e}")
             return None
 
-    def check_channel_stats(self, bucket_name=None):
+    def check_channel_stats(self, bucket_name=None, type_filter=None):
+        CHAT_TYPES = {"ChatType.CHANNEL", "ChatType.PRIVATE", "ChatType.BOT", "ChatType.SUPERGROUP",
+                      "ChatType.GROUP"}
+
+        if isinstance(type_filter, str):
+            type_filter = {type_filter}
+        elif type_filter is not None:
+            if not isinstance(type_filter, (list, set)):
+                raise TypeError("type_filter must be a string, list, or set")
+            type_filter = set(type_filter)
+            invalid_filters = type_filter - CHAT_TYPES
+            if invalid_filters:
+                logging.error(f"Incorrect type_filter: {invalid_filters}. Must be from {CHAT_TYPES}")
+            type_filter &= CHAT_TYPES
+        else:
+            type_filter = CHAT_TYPES
+
         bucket_name = bucket_name or self.config.bucket_name
         self.statistics = self.STATS_TEMPLATE.copy()
         tmp_path = os.path.join(
@@ -205,7 +221,7 @@ class StorageManager:
             if (
                     "status" in group
                     and group["status"] == "ok"
-                    and group["type"] == "ChatType.CHANNEL"
+                    and group["type"] in type_filter
                     and "last_posted_message_id" in group
                     and "target_id" in group
             ):
@@ -215,11 +231,14 @@ class StorageManager:
                                 - (group.get("left_saved_id") or 0)
                                 + 1
                               )
-                download_scope =  (
-                                    max(group["last_posted_message_id"], group["right_saved_id"])
-                                    - min(group["target_id"],group["left_saved_id"])
-                                    + 1
-                                )
+                valid_max_values = [val for val in [group.get("last_posted_message_id"), group.get("right_saved_id")] if
+                                    val is not None]
+                valid_min_values = [val for val in [group.get("target_id"), group.get("left_saved_id")] if
+                                    val is not None]
+                if valid_max_values and valid_min_values:
+                    download_scope = max(valid_max_values) - min(valid_min_values) + 1
+                else:
+                    download_scope = 0
                 difference = download_scope - downloaded
                 self.statistics["total_downloaded"] += downloaded
                 self.statistics["total_missed"] += missed
@@ -267,10 +286,10 @@ class StorageManager:
         return True
 
     def log_statistics(self):
-        logging.info(f'need to download total: {self.statistics["download_scope"]}')
+        logging.info(f'total scope to download: {self.statistics["download_scope"]}')
         logging.info(f'msg downloaded: {self.statistics["total_downloaded"]}')
         logging.info(f'missed total: {self.statistics["total_missed"]}')
-        logging.info(f'to download: {self.statistics["download_scope"] - self.statistics["total_downloaded"]}')
+        logging.info(f'left to download: {self.statistics["download_scope"] - self.statistics["total_downloaded"]}')
 
         logging.info(f'channels_total: {self.statistics["channels_total"]}')
         logging.info(f'channels_done: {self.statistics["channels_done"]}')
