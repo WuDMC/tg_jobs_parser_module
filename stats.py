@@ -10,6 +10,6 @@ from tg_jobs_parser.configs import volume_folder_path
 if __name__ == "__main__":
     try:
         sm = StorageManager()
-        sm.check_channel_stats(bucket_name='wu-eu-west', type_filter="ChatType.CHANNEL")
+        sm.check_channel_stats( type_filter="ChatType.CHANNEL")
     finally:
         json_helper.delete_files_recursively(volume_folder_path)

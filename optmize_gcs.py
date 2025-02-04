@@ -1,6 +1,8 @@
 import os
 import json
 import logging
+import uuid
+
 from tg_jobs_parser.google_cloud_helper.storage_manager import StorageManager
 from tg_jobs_parser.utils import json_helper
 from tg_jobs_parser.configs import volume_folder_path
@@ -42,20 +44,12 @@ def merge_downloaded_blobs(path):
     return list(merged_data.values())
 
 
-def process_data(merged_data):
-    """
-    Обрабатывает объединённые данные: сортирует, собирает статистику.
-
-    :param merged_data: список объединённых записей.
-    :return: словарь со статистикой и обработанные данные.
-    """
-    # Сортировка по ID
-    merged_data.sort(key=lambda x: x["id"])
-
-    # Подсчёт статистики
-    min_id = merged_data[0]["id"] if merged_data else None
-    max_id = merged_data[-1]["id"] if merged_data else None
-    total_messages = len(merged_data)
+def process_data(data):
+    sorted_data = data.copy()
+    sorted_data.sort(key=lambda x: x["id"])
+    min_id = sorted_data[0]["id"] if sorted_data else None
+    max_id = sorted_data[-1]["id"] if sorted_data else None
+    total_messages = len(data)
     skipped_msgs = (max_id - min_id + 1) - total_messages if min_id is not None and max_id is not None else 0
 
     logging.info(f"Statistics:")
@@ -69,44 +63,49 @@ def process_data(merged_data):
         "min_id": min_id,
         "max_id": max_id,
         "skipped_msgs": skipped_msgs,
-    }, merged_data
+    }, sorted_data
 
-
-if __name__ == "__main__":
+def optimize(source_bucket_name, destination_bucket_name = None):
     try:
+        if destination_bucket_name is None:
+            destination_bucket_name = source_bucket_name
         sm = StorageManager()
         json_helper.delete_files_recursively(volume_folder_path)
         cl_channels_metadata_path = f"{volume_folder_path}/new_cloud_metadata.json"
-        sm.check_channel_stats()
-
-        sm.download_blob(blob_name=sm.config.source_channels_blob, path=cl_channels_metadata_path)
+        sm.check_channel_stats(bucket_name=source_bucket_name, type_filter="ChatType.CHANNEL")
+        sm.download_blob(blob_name=sm.config.source_channels_blob, path=cl_channels_metadata_path, bucket_name=source_bucket_name)
         cloud_metadata = json_helper.read_json(cl_channels_metadata_path)
-        folders = sm.get_folders()
+        folders = sm.get_folders(bucket_name=source_bucket_name)
         processed = 0
         processed_msgs = 0
         for folder in folders:
             prefix = f"{sm.config.source_msg_blob}/{folder}"
-            channel_metadata = cloud_metadata[folder]
-            folder_blobs = sm.list_msgs_with_metadata(prefix)
-            local_folder_path = sm.download_blobs(folder_blobs)
+            channel_metadata = cloud_metadata[folder].copy() if cloud_metadata and folder in cloud_metadata else {}
+            folder_blobs = sm.list_msgs_with_metadata(prefix, bucket_name=source_bucket_name)
+            local_folder_path = sm.download_blobs(folder_blobs, bucket_name=source_bucket_name)
             merged_data = merge_downloaded_blobs(local_folder_path)
             stats, processed_data = process_data(merged_data)
             file_name = f"msgs{folder}_left_{stats['min_id']}_right_{stats['max_id']}.json"
             local_file_path = f"{volume_folder_path}/{file_name}"
             json_helper.save_to_line_delimited_json(processed_data, local_file_path )
-            # sm.backup_blobs(folder_blobs) use if needed
-            sm.upload_file(source_file_name=local_file_path, destination_blob_name=f'{prefix}/{file_name}', bucket_name='tg_msgs')
+            if destination_bucket_name == source_bucket_name:
+                sm.backup_blobs(folder_blobs)
+            sm.upload_file(source_file_name=local_file_path, destination_blob_name=f'{prefix}/{file_name}', bucket_name=destination_bucket_name)
             channel_metadata['left_saved_id'] = stats['min_id']
             channel_metadata['target_id'] = stats['min_id']
             channel_metadata['right_saved_id'] = stats['max_id']
             channel_metadata['last_posted_message_id'] = stats['max_id']
             channel_metadata['skipped_msgs'] = stats['skipped_msgs']
             # logging.info(f"channel stats: {stats}")
+            cloud_metadata[folder] = channel_metadata
             processed_msgs = processed_msgs + stats['total_messages']
             processed = processed + 1
             logging.info(f"--- Processed {processed} files from {len(folders)} folder \n---------------- Total messages: {processed_msgs}")
-        json_helper.save_to_line_delimited_json(data=cloud_metadata, path=cl_channels_metadata_path)
-        sm.update_channels_metadata(source_file_name=cl_channels_metadata_path, bucket_name='tg_msgs')
-        sm.check_channel_stats(bucket_name='tg_msgs')
+        json_helper.save_to_json(data=cloud_metadata, path=cl_channels_metadata_path)
+        sm.update_channels_metadata(source_file_name=cl_channels_metadata_path, bucket_name=destination_bucket_name)
+        sm.check_channel_stats(bucket_name=destination_bucket_name, type_filter="ChatType.CHANNEL")
     finally:
         json_helper.delete_files_recursively(volume_folder_path)
+
+if __name__ == "__main__":
+    optimize('wu-eu-west', 'tg_msgs')

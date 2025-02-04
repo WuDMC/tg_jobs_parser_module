@@ -89,10 +89,11 @@ class StorageManager:
             logging.error(f"Error while listing files: {e}")
             return []
 
-    def get_folders(self, prefix=None):
+    def get_folders(self, prefix=None, bucket_name=None):
+        bucket_name = bucket_name or self.config.bucket_name
         prefix = prefix or self.config.source_msg_blob
         try:
-            all_blobs = self.list_msgs_with_metadata(prefix)
+            all_blobs = self.list_msgs_with_metadata(prefix, bucket_name)
             top_level_folders = {item["channel"] for item in all_blobs if "channel" in item}
             return list(top_level_folders)
         except Exception as e:
@@ -217,6 +218,9 @@ class StorageManager:
         )
         self.download_blob(blob_name=self.config.source_channels_blob, path=tmp_path, bucket_name=bucket_name)
         channels = read_json(tmp_path)
+        if  channels is None:
+            logging.error(f"no stats file to download at {self.config.source_channels_blob}, bucket name: {bucket_name}")
+            return None
         for group in channels.values():
             if (
                     "status" in group
@@ -256,8 +260,14 @@ class StorageManager:
         self.log_statistics()
         delete_local_file(tmp_path)
 
-    def download_blobs(self, folder_blobs):
+    def download_blobs(self, folder_blobs, bucket_name=None):
         # folder_blobs - metadata from blobs from one folder
+        bucket_name = bucket_name or self.config.bucket_name
+
+        if folder_blobs is None or len(folder_blobs) == 0:
+            logging.error("no folder blobs to download")
+            return None
+
         channel = folder_blobs[0]["channel"]
         local_folder_path = f"{volume_folder_path}/{channel}"
         if not os.path.exists(local_folder_path):
@@ -269,17 +279,19 @@ class StorageManager:
             logging.info(f"Created file: {local_file_path}")
 
             try:
-                self.download_blob(blob_name=blob_name, path=local_file_path)
+                self.download_blob(blob_name=blob_name, path=local_file_path, bucket_name=bucket_name)
             except Exception as e:
                 logging.error(f"Error downloading blobs and processing {blob_name}: {e}")
         return local_folder_path
 
-    def backup_blobs(self, folder_blobs, backup_path='backup'):
+    def backup_blobs(self, folder_blobs, backup_path='backup', bucket_name=None):
         # folder_blobs - metadata from blobs from one folder
+        bucket_name = bucket_name or self.config.bucket_name
+
         for blob_metadata in folder_blobs:
             blob_name = blob_metadata["full_path"]
             try:
-                self.move_blob(source_blob_name=blob_name, destination_blob_name=f"{backup_path}/{blob_name}")
+                self.move_blob(source_blob_name=blob_name, destination_blob_name=f"{backup_path}/{blob_name}", bucket_name=bucket_name)
             except Exception as e:
                 logging.error(f"Error backup blobs and processing {blob_name}: {e}")
                 raise (str(e))
