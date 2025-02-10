@@ -54,8 +54,8 @@ class StorageManager:
             "to_upd_channels_ids": [],
         }
 
-    def __init__(self):
-        self.config = GoogleCloudConfig()
+    def __init__(self, json_config=None):
+        self.config = GoogleCloudConfig(json_config=json_config)
         self.client = storage.Client()
         self.statistics = self.STATS_TEMPLATE.copy()
 

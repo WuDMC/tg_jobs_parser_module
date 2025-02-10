@@ -164,10 +164,10 @@ def chat_parser_args(channel):
 
 
 class TelegramParser:
-    def __init__(self):
+    def __init__(self, json_config=None):
         self.result = None
         logging.info("TelegramParser init start")
-        self.config = TelegramConfig()
+        self.config = TelegramConfig(json_config=json_config)
         self.client = TelegramClient(name=self.config.account_name, session_string=self.config.session_string)
         self.app = self.client.get_client()
         self.channels = {}
