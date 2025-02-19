@@ -15,6 +15,6 @@ telegram:
   account_name: "${ACCOUNT_NAME}"
   session_string: "${SESSION_STRING}"
   start_data: "${START_DATE}"
-  max_limit: 1000
+  max_limit: "${MAX_LIMIT}"
   black_list: "${BLACK_LIST}"
   white_list: "${WHITE_LIST}"
