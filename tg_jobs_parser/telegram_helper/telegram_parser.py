@@ -260,7 +260,8 @@ class TelegramParser:
                     tg_channel["last_posted_message_id"] = cloud_channel["right_saved_id"]
 
                 cloud_channel.setdefault("target_date", None)
-                msgs_data = await self.get_message_id(ch_id, date)
+                await self.get_message_id(ch_id, date)
+                msgs_data = self.message_data
                 if msgs_data:
                     cloud_channel["left_saved_id"] = None
                     cloud_channel["right_saved_id"] = None
