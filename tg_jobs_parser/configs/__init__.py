@@ -140,7 +140,7 @@ class TelegramConfig(Config):
         self.session_string = self.get("telegram", "session_string")
         self.api_id = self.get("telegram", "api_id")
         self.api_hash = self.get("telegram", "api_hash")
-        self.max_limit = self.get("telegram", "max_limit") or 500
+        self.max_limit = int(self.get("telegram", "max_limit")) or 500
         self.account_name = self.get("telegram", "account_name") or DEFAULT_ACCOUNT_NAME
         self.black_list = json.loads(self.get("telegram", "black_list")) or []
         self.white_list = json.loads(self.get("telegram", "white_list")) or []
