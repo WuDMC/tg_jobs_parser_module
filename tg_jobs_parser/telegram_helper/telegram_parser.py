@@ -275,10 +275,11 @@ class TelegramParser:
         return cloud_channels
 
     async def parse_channel_messages(self, channel_metadata):
+        messages = {}
+        msgs_ids = []
         try:
-            ts = str(datetime.now(timezone.utc))
+            # ts = str(datetime.now(timezone.utc))
             from_msg_id, limit, flow = chat_parser_args(channel_metadata)
-            messages = {}
             limit = min(limit, self.config.max_limit)
             msgs_ids = generate_ids(from_msg_id, limit, flow)
             if from_msg_id is None:
