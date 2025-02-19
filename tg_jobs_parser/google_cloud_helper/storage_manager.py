@@ -56,7 +56,7 @@ class StorageManager:
 
     def __init__(self, json_config=None):
         self.config = GoogleCloudConfig(json_config=json_config)
-        self.client = storage.Client()
+        self.client = storage.Client(project=self.config.project)
         self.statistics = self.STATS_TEMPLATE.copy()
 
     def list_msgs_with_metadata(self, prefix=None, bucket_name=None):
