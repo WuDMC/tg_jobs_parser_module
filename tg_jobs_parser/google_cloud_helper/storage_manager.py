@@ -230,11 +230,12 @@ class StorageManager:
                     and "target_id" in group
             ):
                 missed = group.get("missed_msgs") or 0
-                downloaded = (
-                                (group.get("right_saved_id") or 0)
-                                - (group.get("left_saved_id") or 0)
-                                + 1
-                              )
+                if group.get("right_saved_id") and group.get("left_saved_id"):
+                    downloaded = (
+                                    group.get("right_saved_id") - group.get("left_saved_id") + 1
+                                  )
+                else:
+                    downloaded = 0
                 valid_max_values = [val for val in [group.get("last_posted_message_id"), group.get("right_saved_id")] if
                                     val is not None]
                 valid_min_values = [val for val in [group.get("target_id"), group.get("left_saved_id")] if
