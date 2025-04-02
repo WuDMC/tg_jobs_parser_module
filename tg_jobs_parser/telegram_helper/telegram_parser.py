@@ -232,7 +232,7 @@ class TelegramParser:
         tg_channels = self.channels.items()
         for ch_id, tg_channel in tg_channels:
             try:
-                cloud_channel = cloud_channels.get(str(ch_id), {})
+                cloud_channel = cloud_channels.get(str(ch_id), cloud_channels.get(ch_id, {}))
                 if ch_id in self.config.black_list:
                     cloud_channel["status"] = "bad"
                     logging.info(f"{ch_id} is BANNED - skip")
